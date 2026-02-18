@@ -21,7 +21,6 @@ const Auth = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       if (mode === "login") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -31,16 +30,10 @@ const Auth = () => {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            data: { name },
-            emailRedirectTo: window.location.origin,
-          },
+          options: { data: { name }, emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
-        toast({
-          title: "Cadastro realizado!",
-          description: "Verifique seu e-mail para confirmar o cadastro.",
-        });
+        toast({ title: "Cadastro realizado!", description: "Verifique seu e-mail para confirmar o cadastro." });
         setMode("login");
       }
     } catch (error: unknown) {
@@ -55,47 +48,35 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left panel */}
-      <div className="hidden lg:flex lg:w-1/2 bg-primary flex-col justify-between p-12">
-        <div className="flex items-center gap-3">
-          <img src={connectLogo} alt="Connect" className="w-12 h-12 object-contain rounded-lg bg-primary-foreground p-1" />
-          <span className="text-primary-foreground font-bold text-xl tracking-widest uppercase" style={{ fontFamily: "serif", letterSpacing: "0.25em" }}>Connect</span>
-        </div>
-        <div>
-          <h1 className="text-4xl font-bold text-primary-foreground mb-4 leading-tight">
-            Cuidando das pessoas<br />com organização
-          </h1>
-          <p className="text-primary-foreground/70 text-lg">
-            Acompanhe visitantes, discipuladores e discípulos em um só lugar.
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="w-full max-w-sm">
+
+        {/* Logo centralizada e grande */}
+        <div className="flex flex-col items-center mb-10">
+          <img
+            src={connectLogo}
+            alt="Connect"
+            className="w-36 h-36 object-contain mb-5"
+          />
+          <p className="text-muted-foreground text-sm text-center">
+            Sistema de Gestão da Igreja
           </p>
         </div>
-        <div className="text-primary-foreground/40 text-sm">
-          Sistema de Gestão da Igreja
-        </div>
-      </div>
 
-      {/* Right panel */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-background">
-        <div className="w-full max-w-md">
-          {/* Mobile logo */}
-          <div className="lg:hidden flex items-center gap-3 mb-8">
-            <img src={connectLogo} alt="Connect" className="w-9 h-9 object-contain rounded-md bg-primary p-1" />
-            <span className="text-foreground font-bold tracking-widest uppercase" style={{ letterSpacing: "0.2em" }}>Connect</span>
-          </div>
-
-          <h2 className="text-3xl font-bold text-foreground mb-2">
+        {/* Card do formulário */}
+        <div className="bg-card border border-border rounded-2xl shadow-sm p-8">
+          <h2 className="text-xl font-semibold text-foreground mb-1 text-center">
             {mode === "login" ? "Entrar" : "Criar conta"}
           </h2>
-          <p className="text-muted-foreground mb-8">
+          <p className="text-muted-foreground text-sm text-center mb-6">
             {mode === "login"
-              ? "Acesse o sistema com suas credenciais"
+              ? "Acesse com suas credenciais"
               : "Preencha os dados para criar sua conta"}
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {mode === "signup" && (
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="name">Nome completo</Label>
                 <Input
                   id="name"
@@ -108,7 +89,7 @@ const Auth = () => {
               </div>
             )}
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="email">E-mail</Label>
               <Input
                 id="email"
@@ -120,7 +101,7 @@ const Auth = () => {
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="password">Senha</Label>
               <div className="relative">
                 <Input
@@ -143,12 +124,12 @@ const Auth = () => {
               </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full mt-2" disabled={loading}>
               {loading ? "Aguarde..." : mode === "login" ? "Entrar" : "Criar conta"}
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-muted-foreground text-sm">
+          <p className="mt-5 text-center text-muted-foreground text-sm">
             {mode === "login" ? "Não tem conta? " : "Já tem conta? "}
             <button
               onClick={() => setMode(mode === "login" ? "signup" : "login")}
