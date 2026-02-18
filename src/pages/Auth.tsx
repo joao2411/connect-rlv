@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Church, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
+import connectLogo from "@/assets/connect-logo.jpg";
 
 const Auth = () => {
   const [mode, setMode] = useState<"login" | "signup">("login");
@@ -58,10 +59,8 @@ const Auth = () => {
       {/* Left panel */}
       <div className="hidden lg:flex lg:w-1/2 bg-primary flex-col justify-between p-12">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
-            <Church className="w-6 h-6 text-accent-foreground" />
-          </div>
-          <span className="text-primary-foreground font-semibold text-lg">Gestão de Membros</span>
+          <img src={connectLogo} alt="Connect" className="w-12 h-12 object-contain rounded-lg bg-primary-foreground p-1" />
+          <span className="text-primary-foreground font-bold text-xl tracking-widest uppercase" style={{ fontFamily: "serif", letterSpacing: "0.25em" }}>Connect</span>
         </div>
         <div>
           <h1 className="text-4xl font-bold text-primary-foreground mb-4 leading-tight">
@@ -79,11 +78,10 @@ const Auth = () => {
       {/* Right panel */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-background">
         <div className="w-full max-w-md">
+          {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-3 mb-8">
-            <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
-              <Church className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <span className="text-foreground font-semibold">Gestão de Membros</span>
+            <img src={connectLogo} alt="Connect" className="w-9 h-9 object-contain rounded-md bg-primary p-1" />
+            <span className="text-foreground font-bold tracking-widest uppercase" style={{ letterSpacing: "0.2em" }}>Connect</span>
           </div>
 
           <h2 className="text-3xl font-bold text-foreground mb-2">

@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
-  Church,
   LayoutDashboard,
   Users,
   Heart,
@@ -12,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import connectLogo from "@/assets/connect-logo.jpg";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -33,13 +33,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const NavContent = () => (
     <>
       <div className="flex items-center gap-3 px-6 py-5 border-b border-sidebar-border">
-        <div className="w-9 h-9 bg-accent rounded-lg flex items-center justify-center shrink-0">
-          <Church className="w-5 h-5 text-accent-foreground" />
-        </div>
-        <div>
-          <p className="text-sidebar-foreground font-semibold text-sm leading-tight">Gestão</p>
-          <p className="text-sidebar-foreground/60 text-xs">de Membros</p>
-        </div>
+        <img src={connectLogo} alt="Connect" className="w-9 h-9 object-contain rounded-md bg-sidebar-foreground/10 p-0.5" />
+        <span className="text-sidebar-foreground font-bold tracking-widest text-sm uppercase" style={{ letterSpacing: "0.2em" }}>Connect</span>
       </div>
 
       <nav className="flex-1 p-4 space-y-1">
@@ -100,10 +95,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         {/* Mobile header */}
         <header className="md:hidden flex items-center justify-between px-4 py-3 bg-card border-b border-border">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-primary rounded-md flex items-center justify-center">
-              <Church className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <span className="font-semibold text-sm">Gestão de Membros</span>
+            <img src={connectLogo} alt="Connect" className="w-7 h-7 object-contain rounded bg-primary p-0.5" />
+            <span className="font-bold text-sm tracking-widest uppercase" style={{ letterSpacing: "0.18em" }}>Connect</span>
           </div>
           <button onClick={() => setMobileOpen(!mobileOpen)} className="text-foreground">
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
