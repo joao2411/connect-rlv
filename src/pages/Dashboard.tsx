@@ -1,153 +1,119 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
-import { Users, Heart, TrendingUp, Calendar } from "lucide-react";
-
-interface Stats {
-  totalVisitors: number;
-  visitorsThisMonth: number;
-  totalDiscipleship: number;
-  activeDiscipleship: number;
-}
-
-const StatCard = ({
-  label,
-  value,
-  icon: Icon,
-  sub,
-  color,
-}: {
-  label: string;
-  value: number;
-  icon: React.ElementType;
-  sub?: string;
-  color: string;
-}) => (
-  <div className="bg-card rounded-xl border border-border p-6 flex items-start gap-4">
-    <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 ${color}`}>
-      <Icon className="w-6 h-6" />
-    </div>
-    <div>
-      <p className="text-muted-foreground text-sm mb-1">{label}</p>
-      <p className="text-3xl font-bold text-foreground">{value}</p>
-      {sub && <p className="text-muted-foreground text-xs mt-1">{sub}</p>}
-    </div>
-  </div>
-);
+import { Users, Heart, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 const Dashboard = () => {
-  const [stats, setStats] = useState<Stats>({
-    totalVisitors: 0,
-    visitorsThisMonth: 0,
-    totalDiscipleship: 0,
-    activeDiscipleship: 0,
-  });
-  const [recentVisitors, setRecentVisitors] = useState<Array<{ id: string; name: string; first_visit_date: string; phone: string | null }>>([]);
+  const navigate = useNavigate();
+  const [visitorsThisMonth, setVisitorsThisMonth] = useState(0);
+  const [activeDiscipleship, setActiveDiscipleship] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchStats = async () => {
       const now = new Date();
-      const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
+      const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+        .toISOString()
+        .split("T")[0];
 
-      const [
-        { count: totalVisitors },
-        { count: visitorsThisMonth },
-        { count: totalDiscipleship },
-        { count: activeDiscipleship },
-        { data: recent },
-      ] = await Promise.all([
-        supabase.from("visitors").select("*", { count: "exact", head: true }),
-        supabase.from("visitors").select("*", { count: "exact", head: true }).gte("first_visit_date", firstOfMonth),
-        supabase.from("discipleship").select("*", { count: "exact", head: true }),
-        supabase.from("discipleship").select("*", { count: "exact", head: true }).eq("status", "ativo"),
-        supabase.from("visitors").select("id, name, first_visit_date, phone").order("created_at", { ascending: false }).limit(5),
+      const [{ count: vCount }, { count: dCount }] = await Promise.all([
+        supabase
+          .from("visitors")
+          .select("*", { count: "exact", head: true })
+          .gte("first_visit_date", firstOfMonth),
+        supabase
+          .from("discipleship")
+          .select("*", { count: "exact", head: true })
+          .eq("status", "ativo"),
       ]);
 
-      setStats({
-        totalVisitors: totalVisitors ?? 0,
-        visitorsThisMonth: visitorsThisMonth ?? 0,
-        totalDiscipleship: totalDiscipleship ?? 0,
-        activeDiscipleship: activeDiscipleship ?? 0,
-      });
-      setRecentVisitors(recent ?? []);
+      setVisitorsThisMonth(vCount ?? 0);
+      setActiveDiscipleship(dCount ?? 0);
       setLoading(false);
     };
-
-    fetchData();
+    fetchStats();
   }, []);
 
-  const formatDate = (dateStr: string) => {
-    const [year, month, day] = dateStr.split("-");
-    return `${day}/${month}/${year}`;
-  };
+  const cards = [
+    {
+      title: "Discipulados",
+      description: "Gerencie discipuladores e seus discípulos",
+      stat: `${activeDiscipleship} ativo${activeDiscipleship !== 1 ? "s" : ""}`,
+      icon: Heart,
+      href: "/discipulado",
+      gradient: "from-primary to-primary/80",
+      iconBg: "bg-primary/10 text-primary",
+    },
+    {
+      title: "Visitantes",
+      description: "Acompanhe os visitantes da igreja",
+      stat: `${visitorsThisMonth} este mês`,
+      icon: Users,
+      href: "/visitantes",
+      gradient: "from-accent to-accent/80",
+      iconBg: "bg-accent/15 text-accent-foreground",
+    },
+  ];
 
   return (
     <Layout>
-      <div className="max-w-5xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Visão geral do sistema</p>
-        </div>
+      <div className="max-w-3xl mx-auto">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="text-center mb-12"
+        >
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-3">
+            Bem-vindo ao{" "}
+            <span className="text-gradient-gold">Connect</span>
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            O que você gostaria de acessar?
+          </p>
+        </motion.div>
 
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-card rounded-xl border border-border p-6 h-28 animate-pulse" />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <StatCard
-              label="Total de Visitantes"
-              value={stats.totalVisitors}
-              icon={Users}
-              color="bg-primary/10 text-primary"
-            />
-            <StatCard
-              label="Visitantes este mês"
-              value={stats.visitorsThisMonth}
-              icon={Calendar}
-              color="bg-accent/20 text-accent-foreground"
-            />
-            <StatCard
-              label="Relacionamentos"
-              value={stats.totalDiscipleship}
-              icon={Heart}
-              color="bg-rose-100 text-rose-600"
-            />
-            <StatCard
-              label="Discipulados ativos"
-              value={stats.activeDiscipleship}
-              icon={TrendingUp}
-              color="bg-success/10 text-success"
-            />
-          </div>
-        )}
-
-        <div className="bg-card rounded-xl border border-border">
-          <div className="px-6 py-4 border-b border-border">
-            <h2 className="font-semibold text-foreground">Visitantes recentes</h2>
-          </div>
-          {recentVisitors.length === 0 ? (
-            <div className="px-6 py-10 text-center text-muted-foreground">
-              Nenhum visitante cadastrado ainda.
-            </div>
-          ) : (
-            <div className="divide-y divide-border">
-              {recentVisitors.map((v) => (
-                <div key={v.id} className="px-6 py-4 flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-foreground">{v.name}</p>
-                    <p className="text-muted-foreground text-sm">{v.phone ?? "—"}</p>
-                  </div>
-                  <span className="text-muted-foreground text-sm bg-muted px-3 py-1 rounded-full">
-                    {formatDate(v.first_visit_date)}
-                  </span>
+        {/* Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {cards.map((card, i) => (
+            <motion.button
+              key={card.href}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 + i * 0.1 }}
+              onClick={() => navigate(card.href)}
+              className="glass-card-hover text-left p-8 group cursor-pointer"
+            >
+              <div className="flex items-start justify-between mb-6">
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${card.iconBg}`}>
+                  <card.icon className="w-7 h-7" />
                 </div>
-              ))}
-            </div>
-          )}
+                <ArrowRight className="w-5 h-5 text-muted-foreground/40 group-hover:text-accent group-hover:translate-x-1 transition-all duration-300" />
+              </div>
+
+              <h2 className="text-2xl font-bold text-foreground mb-1.5">
+                {card.title}
+              </h2>
+              <p className="text-muted-foreground text-sm mb-4">
+                {card.description}
+              </p>
+
+              {!loading && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-muted-foreground text-xs font-medium"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+                  {card.stat}
+                </motion.div>
+              )}
+            </motion.button>
+          ))}
         </div>
       </div>
     </Layout>

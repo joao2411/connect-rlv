@@ -2,58 +2,58 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');
 
 @layer base {
   :root {
-    /* Church Management - Azul-marinho acolhedor com acento dourado */
-    --background: 220 20% 97%;
-    --foreground: 220 40% 12%;
+    --background: 225 25% 97%;
+    --foreground: 225 45% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 40% 12%;
+    --card-foreground: 225 45% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 40% 12%;
+    --popover-foreground: 225 45% 10%;
 
-    /* Azul-marinho profundo */
-    --primary: 220 55% 22%;
-    --primary-foreground: 45 80% 95%;
+    --primary: 225 60% 25%;
+    --primary-foreground: 45 90% 96%;
 
-    --secondary: 220 20% 92%;
-    --secondary-foreground: 220 40% 20%;
+    --secondary: 225 18% 93%;
+    --secondary-foreground: 225 45% 18%;
 
-    --muted: 220 15% 94%;
-    --muted-foreground: 220 20% 50%;
+    --muted: 225 12% 94%;
+    --muted-foreground: 225 15% 48%;
 
-    /* Dourado/âmbar */
-    --accent: 42 85% 52%;
-    --accent-foreground: 220 55% 15%;
+    --accent: 40 90% 55%;
+    --accent-foreground: 225 55% 12%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 20% 88%;
-    --input: 220 20% 88%;
-    --ring: 220 55% 22%;
+    --border: 225 18% 90%;
+    --input: 225 18% 88%;
+    --ring: 225 60% 25%;
 
-    --radius: 0.625rem;
+    --radius: 0.75rem;
 
-    /* Sidebar */
-    --sidebar-background: 220 55% 18%;
-    --sidebar-foreground: 45 80% 92%;
-    --sidebar-primary: 42 85% 52%;
-    --sidebar-primary-foreground: 220 55% 15%;
-    --sidebar-accent: 220 45% 28%;
-    --sidebar-accent-foreground: 45 80% 92%;
-    --sidebar-border: 220 45% 25%;
-    --sidebar-ring: 42 85% 52%;
+    --sidebar-background: 225 58% 15%;
+    --sidebar-foreground: 45 80% 94%;
+    --sidebar-primary: 40 90% 55%;
+    --sidebar-primary-foreground: 225 55% 12%;
+    --sidebar-accent: 225 45% 24%;
+    --sidebar-accent-foreground: 45 80% 94%;
+    --sidebar-border: 225 45% 22%;
+    --sidebar-ring: 40 90% 55%;
 
-    /* Extras */
     --success: 152 55% 40%;
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
+
+    --gradient-gold: linear-gradient(135deg, hsl(40, 90%, 55%), hsl(35, 95%, 45%));
+    --gradient-navy: linear-gradient(135deg, hsl(225, 60%, 25%), hsl(225, 58%, 15%));
+    --shadow-card: 0 1px 3px 0 hsl(225 25% 10% / 0.04), 0 4px 16px -2px hsl(225 25% 10% / 0.06);
+    --shadow-elevated: 0 4px 12px -2px hsl(225 25% 10% / 0.08), 0 12px 36px -8px hsl(225 25% 10% / 0.1);
   }
 }
 
@@ -63,12 +63,43 @@
   }
 
   body {
-    @apply bg-background text-foreground;
-    font-family: 'Inter', sans-serif;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'DM Sans', sans-serif;
   }
 
-  h1, h2 {
-    font-family: 'Playfair Display', serif;
+  h1, h2, h3 {
+    font-family: 'Instrument Serif', serif;
+    letter-spacing: -0.01em;
   }
 }
 
+@layer utilities {
+  .glass-card {
+    @apply bg-card/80 backdrop-blur-xl border border-border/60 rounded-2xl;
+    box-shadow: var(--shadow-card);
+  }
+
+  .glass-card-hover {
+    @apply glass-card transition-all duration-300;
+  }
+
+  .glass-card-hover:hover {
+    box-shadow: var(--shadow-elevated);
+    transform: translateY(-2px);
+  }
+
+  .gradient-gold {
+    background: var(--gradient-gold);
+  }
+
+  .gradient-navy {
+    background: var(--gradient-navy);
+  }
+
+  .text-gradient-gold {
+    background: var(--gradient-gold);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
