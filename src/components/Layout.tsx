@@ -52,20 +52,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             className="w-full h-full object-contain brightness-0 invert opacity-90"
           />
         </div>
-        <div>
-          <span
-            className="text-sidebar-foreground font-bold text-[15px] tracking-[0.15em] uppercase"
-            style={{ fontFamily: "'DM Sans', sans-serif" }}
-          >
-            Connect
-          </span>
-          <p
-            className="text-sidebar-foreground/35 text-[9px] font-semibold uppercase tracking-[0.25em] mt-0.5"
-            style={{ fontFamily: "'DM Sans', sans-serif" }}
-          >
-            Church App
-          </p>
-        </div>
+        <span
+          className="text-sidebar-foreground font-bold text-[15px] tracking-[0.15em] uppercase"
+          style={{ fontFamily: "'DM Sans', sans-serif" }}
+        >
+          Connect
+        </span>
       </div>
 
       {/* Divider */}
@@ -97,6 +89,11 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               )}
               <Icon className="w-[17px] h-[17px] relative z-10" strokeWidth={2.2} />
               <span className="relative z-10">{label}</span>
+              {(href === "/visitantes") && (
+                <span className="relative z-10 ml-auto px-2 py-0.5 rounded-md bg-warning/20 text-warning text-[9px] font-bold uppercase tracking-wider border border-warning/30">
+                  🚧
+                </span>
+              )}
             </Link>
           );
         })}
