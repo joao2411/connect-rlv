@@ -68,7 +68,7 @@ const Dashboard = () => {
           transition={{ duration: 0.4 }}
           className="flex items-center justify-center gap-2 mb-6"
         >
-          <img src={connectSheep} alt="Relive" className="w-7 h-7 object-contain -mt-0.5" />
+          <img src={connectSheep} alt="Relive" className="w-7 h-7 object-contain -mt-1" />
           <span
             className="text-foreground font-bold text-sm tracking-[0.2em] uppercase leading-none"
             style={{ fontFamily: "'DM Sans', sans-serif" }}
