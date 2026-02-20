@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import Visitors from "./pages/Visitors";
 import Discipleship from "./pages/Discipleship";
 import Auth from "./pages/Auth";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const AppRoutes = () => (
     <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
     <Route path="/visitantes" element={<ProtectedRoute><Visitors /></ProtectedRoute>} />
     <Route path="/discipulado" element={<ProtectedRoute><Discipleship /></ProtectedRoute>} />
+    <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />
   </Routes>
 );
