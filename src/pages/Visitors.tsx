@@ -182,6 +182,11 @@ const Visitors = () => {
           </Dialog>
         </div>
 
+        {/* Em construção banner */}
+        <div className="mb-6 rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-5 py-3 text-center">
+          <p className="text-sm font-semibold text-yellow-600 dark:text-yellow-400">🚧 Em construção</p>
+        </div>
+
         {/* Monthly stat */}
         {!loading && (
           <motion.div
