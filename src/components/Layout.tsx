@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import connectLogo from "@/assets/connect-logo.jpg";
+import connectLogoC from "@/assets/connect-logo-c.png";
 
 const ADMIN_USER_ID = "ac15c1af-d252-4b9a-8cac-1a15882a35ef";
 
@@ -34,31 +34,46 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     navigate("/auth");
   };
 
+  const allNavItems = [
+    ...navItems,
+    ...(user?.id === ADMIN_USER_ID
+      ? [{ href: "/admin", label: "Administração", icon: Shield }]
+      : []),
+  ];
+
   const SidebarContent = () => (
     <>
-      <div className="flex items-center gap-3 px-6 py-6">
-        <img
-          src={connectLogo}
-          alt="Connect"
-          className="w-10 h-10 object-contain rounded-xl ring-2 ring-sidebar-accent/30"
-        />
+      {/* Logo area */}
+      <div className="flex items-center gap-3.5 px-5 py-7">
+        <div className="w-11 h-11 rounded-2xl bg-sidebar-accent/20 flex items-center justify-center p-1.5">
+          <img
+            src={connectLogoC}
+            alt="Connect"
+            className="w-full h-full object-contain brightness-0 invert opacity-90"
+          />
+        </div>
         <div>
-          <span className="text-sidebar-foreground font-bold text-base tracking-wide">
+          <span
+            className="text-sidebar-foreground font-bold text-[15px] tracking-[0.15em] uppercase"
+            style={{ fontFamily: "'DM Sans', sans-serif" }}
+          >
             Connect
           </span>
-          <p className="text-sidebar-foreground/40 text-[10px] font-medium uppercase tracking-[0.2em]">
-            Church Management
+          <p
+            className="text-sidebar-foreground/35 text-[9px] font-semibold uppercase tracking-[0.25em] mt-0.5"
+            style={{ fontFamily: "'DM Sans', sans-serif" }}
+          >
+            Church App
           </p>
         </div>
       </div>
 
-      <nav className="flex-1 px-3 py-2 space-y-1">
-        {[
-          ...navItems,
-          ...(user?.id === ADMIN_USER_ID
-            ? [{ href: "/admin", label: "Administração", icon: Shield }]
-            : []),
-        ].map(({ href, label, icon: Icon }) => {
+      {/* Divider */}
+      <div className="mx-5 h-px bg-sidebar-border/40 mb-2" />
+
+      {/* Navigation */}
+      <nav className="flex-1 px-3 py-3 space-y-0.5">
+        {allNavItems.map(({ href, label, icon: Icon }) => {
           const isActive = location.pathname === href;
           return (
             <Link
@@ -66,11 +81,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               to={href}
               onClick={() => setMobileOpen(false)}
               className={cn(
-                "relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200",
+                "relative flex items-center gap-3 px-4 py-3 rounded-xl text-[13px] font-semibold transition-all duration-200",
                 isActive
                   ? "text-sidebar-primary-foreground"
-                  : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/40"
+                  : "text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent/30"
               )}
+              style={{ fontFamily: "'DM Sans', sans-serif" }}
             >
               {isActive && (
                 <motion.div
@@ -79,16 +95,21 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                   transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
                 />
               )}
-              <Icon className="w-[18px] h-[18px] relative z-10" />
+              <Icon className="w-[17px] h-[17px] relative z-10" strokeWidth={2.2} />
               <span className="relative z-10">{label}</span>
             </Link>
           );
         })}
       </nav>
 
-      <div className="px-3 pb-4">
-        <div className="px-4 py-3 rounded-xl bg-sidebar-accent/20 mb-2">
-          <p className="text-sidebar-foreground/50 text-xs truncate">
+      {/* Footer */}
+      <div className="px-3 pb-5">
+        <div className="mx-1 h-px bg-sidebar-border/40 mb-3" />
+        <div className="px-4 py-2.5 rounded-xl bg-sidebar-accent/15 mb-2">
+          <p
+            className="text-sidebar-foreground/45 text-[11px] font-medium truncate"
+            style={{ fontFamily: "'DM Sans', sans-serif" }}
+          >
             {user?.email}
           </p>
         </div>
@@ -96,9 +117,10 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           variant="ghost"
           size="sm"
           onClick={handleSignOut}
-          className="w-full justify-start text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent/30 rounded-xl"
+          className="w-full justify-start text-sidebar-foreground/40 hover:text-sidebar-foreground hover:bg-sidebar-accent/25 rounded-xl text-[13px] font-semibold"
+          style={{ fontFamily: "'DM Sans', sans-serif" }}
         >
-          <LogOut className="w-4 h-4 mr-2" />
+          <LogOut className="w-4 h-4 mr-2" strokeWidth={2.2} />
           Sair
         </Button>
       </div>
@@ -108,7 +130,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="flex h-screen bg-background">
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex md:w-64 gradient-navy flex-col shrink-0 border-r border-sidebar-border/30">
+      <aside className="hidden md:flex md:w-[260px] gradient-navy flex-col shrink-0 border-r border-sidebar-border/20">
         <SidebarContent />
       </aside>
 
@@ -128,7 +150,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               animate={{ x: 0 }}
               exit={{ x: -280 }}
               transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
-              className="relative w-64 h-full gradient-navy flex flex-col"
+              className="relative w-[260px] h-full gradient-navy flex flex-col"
             >
               <SidebarContent />
             </motion.aside>
@@ -138,18 +160,25 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="md:hidden flex items-center justify-between px-4 py-3 bg-card border-b border-border">
+        <header className="md:hidden flex items-center justify-between px-4 py-3 bg-card border-b border-border/60">
           <div className="flex items-center gap-2.5">
-            <img
-              src={connectLogo}
-              alt="Connect"
-              className="w-8 h-8 object-contain rounded-lg"
-            />
-            <span className="font-bold text-sm tracking-wide">Connect</span>
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center p-1">
+              <img
+                src={connectLogoC}
+                alt="Connect"
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <span
+              className="font-bold text-sm tracking-[0.1em] uppercase text-foreground"
+              style={{ fontFamily: "'DM Sans', sans-serif" }}
+            >
+              Connect
+            </span>
           </div>
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="text-foreground p-1.5 rounded-lg hover:bg-muted transition-colors"
+            className="text-foreground p-2 rounded-xl hover:bg-muted transition-colors"
           >
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -158,10 +187,10 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         <main className="flex-1 overflow-y-auto">
           <motion.div
             key={location.pathname}
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="p-6 md:p-8"
+            className="p-5 md:p-8 lg:p-10"
           >
             {children}
           </motion.div>
