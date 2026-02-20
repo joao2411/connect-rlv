@@ -43,8 +43,9 @@ const Dashboard = () => {
       stat: `${activeDiscipleship} ativo${activeDiscipleship !== 1 ? "s" : ""}`,
       icon: Heart,
       href: "/discipulado",
-      gradient: "from-primary to-primary/80",
-      iconBg: "bg-primary/10 text-primary",
+      iconColor: "text-rose-500",
+      iconBg: "bg-rose-500/10",
+      badge: null,
     },
     {
       title: "Visitantes",
@@ -52,64 +53,90 @@ const Dashboard = () => {
       stat: `${visitorsThisMonth} este mês`,
       icon: Users,
       href: "/visitantes",
-      gradient: "from-accent to-accent/80",
-      iconBg: "bg-accent/15 text-accent-foreground",
+      iconColor: "text-amber-600",
+      iconBg: "bg-amber-500/10",
+      badge: "Em construção",
     },
   ];
 
   return (
     <Layout>
-      <div className="max-w-3xl mx-auto">
-        {/* Header */}
+      <div className="max-w-2xl mx-auto">
+        {/* Greeting */}
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
+          initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="text-center mb-12"
+          className="mb-10 md:mb-12"
         >
-          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-3">
+          <h1
+            className="text-3xl md:text-4xl font-bold text-foreground mb-2"
+            style={{ fontFamily: "'DM Sans', sans-serif" }}
+          >
             Bem-vindo ao{" "}
             <span className="text-gradient-gold">Connect</span>
           </h1>
-          <p className="text-muted-foreground text-lg">
+          <p
+            className="text-muted-foreground text-sm md:text-base"
+            style={{ fontFamily: "'DM Sans', sans-serif" }}
+          >
             O que você gostaria de acessar?
           </p>
         </motion.div>
 
         {/* Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           {cards.map((card, i) => (
             <motion.button
               key={card.href}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 + i * 0.1 }}
+              transition={{ duration: 0.4, delay: 0.15 + i * 0.1 }}
               onClick={() => navigate(card.href)}
-              className="glass-card-hover text-left p-8 group cursor-pointer"
+              className="glass-card-hover text-left p-7 group cursor-pointer"
             >
-              <div className="flex items-start justify-between mb-6">
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${card.iconBg}`}>
-                  <card.icon className="w-7 h-7" />
+              {/* Icon + Arrow */}
+              <div className="flex items-start justify-between mb-5">
+                <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center", card.iconBg)}>
+                  <card.icon className={cn("w-6 h-6", card.iconColor)} strokeWidth={2} />
                 </div>
-                <ArrowRight className="w-5 h-5 text-muted-foreground/40 group-hover:text-accent group-hover:translate-x-1 transition-all duration-300" />
+                <ArrowRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-accent group-hover:translate-x-1 transition-all duration-300 mt-1" />
               </div>
 
-              <h2 className="text-2xl font-bold text-foreground mb-1.5">
+              {/* Title */}
+              <h2
+                className="text-xl font-bold text-foreground mb-1"
+                style={{ fontFamily: "'DM Sans', sans-serif" }}
+              >
                 {card.title}
               </h2>
-              {card.href === "/visitantes" && (
-                <span className="inline-block px-2 py-0.5 rounded-md bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 text-[10px] font-semibold mb-1">🚧 Em construção</span>
+
+              {/* Badge */}
+              {card.badge && (
+                <span
+                  className="inline-block px-2 py-0.5 rounded-md bg-warning/15 text-warning text-[10px] font-bold uppercase tracking-wider mb-1.5"
+                  style={{ fontFamily: "'DM Sans', sans-serif" }}
+                >
+                  🚧 {card.badge}
+                </span>
               )}
-              <p className="text-muted-foreground text-sm mb-4">
+
+              {/* Description */}
+              <p
+                className="text-muted-foreground text-[13px] leading-relaxed mb-4"
+                style={{ fontFamily: "'DM Sans', sans-serif" }}
+              >
                 {card.description}
               </p>
 
+              {/* Stat pill */}
               {!loading && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.4 }}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-muted-foreground text-xs font-medium"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/80 text-muted-foreground text-xs font-semibold"
+                  style={{ fontFamily: "'DM Sans', sans-serif" }}
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
                   {card.stat}
@@ -122,5 +149,10 @@ const Dashboard = () => {
     </Layout>
   );
 };
+
+// Helper
+function cn(...classes: (string | undefined | false)[]) {
+  return classes.filter(Boolean).join(" ");
+}
 
 export default Dashboard;
