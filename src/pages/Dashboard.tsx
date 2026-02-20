@@ -90,11 +90,11 @@ const Dashboard = () => {
             >
               {/* Icon + Arrow */}
               <div className="flex items-start justify-between mb-5">
-                <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center p-2.5">
+                <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center p-2">
                   {card.iconType === "sheep" ? (
-                    <img src={connectSheep} alt="" className="w-full h-full object-contain opacity-80" />
+                    <img src={connectSheep} alt="" className="w-full h-full object-contain" />
                   ) : (
-                    <img src={connectLogoC} alt="" className="w-full h-full object-contain opacity-80" />
+                    <img src={connectLogoC} alt="" className="w-full h-full object-contain" />
                   )}
                 </div>
                 <ArrowRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-foreground group-hover:translate-x-1 transition-all duration-300 mt-1" />
@@ -148,7 +148,7 @@ const Dashboard = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.8 }}
-          className="text-center text-muted-foreground/50 text-xs md:text-sm mt-16 md:mt-24 italic tracking-wide"
+          className="text-center text-muted-foreground/50 text-xs md:text-sm mt-32 md:mt-44 italic tracking-wide"
           style={{ fontFamily: "'DM Sans', sans-serif" }}
         >
           "Acreditamos nas pessoas mesmo quando elas mesmas não acreditam."
