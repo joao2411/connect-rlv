@@ -40,7 +40,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
   const NavIcon = ({ type, className }: { type: string; className?: string }) => {
     if (type === "sheep") {
-      return <img src={connectSheep} alt="" className={cn("object-contain brightness-0 invert -mt-0.5", className)} />;
+      return <img src={connectSheep} alt="" className={cn("object-contain brightness-0 invert -mt-1", className)} />;
     }
     if (type === "logo") {
       return <img src={connectLogoC} alt="" className={cn("object-contain brightness-0 invert", className)} />;
@@ -169,7 +169,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             <img
               src={connectSheep}
               alt="Relive"
-              className="w-7 h-7 object-contain"
+              className="w-7 h-7 object-contain -mt-1"
             />
             <span
               className="font-bold text-sm tracking-[0.15em] uppercase text-foreground"
