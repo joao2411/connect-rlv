@@ -61,19 +61,34 @@ const Dashboard = () => {
   return (
     <Layout>
       <div className="max-w-2xl mx-auto">
-        {/* Greeting */}
+        {/* Sheep + RELIVE header */}
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="mb-10 md:mb-14"
+          className="flex items-center justify-center gap-2.5 mb-4"
+        >
+          <img src={connectSheep} alt="Relive" className="w-8 h-8 object-contain" />
+          <span
+            className="text-foreground font-bold text-sm tracking-[0.2em] uppercase"
+            style={{ fontFamily: "'DM Sans', sans-serif" }}
+          >
+            Relive
+          </span>
+        </motion.div>
+
+        {/* Greeting */}
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="mb-10 md:mb-14 text-center"
         >
           <h1
             className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground"
             style={{ fontFamily: "'DM Sans', sans-serif" }}
           >
-            Bem-vindo ao{" "}
-            <span className="text-foreground">Connect Relive</span>
+            Bem-vindo ao Connect Relive
           </h1>
         </motion.div>
 
