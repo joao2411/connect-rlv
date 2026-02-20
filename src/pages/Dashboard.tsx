@@ -68,7 +68,7 @@ const Dashboard = () => {
           transition={{ duration: 0.4 }}
           className="flex items-center justify-center gap-2 mb-6"
         >
-          <img src={connectSheep} alt="Relive" className="w-8 h-8 object-contain -mt-3" />
+          <img src={connectSheep} alt="Relive" className="w-8 h-8 object-contain -mt-5" />
           <span
             className="text-foreground font-bold text-sm tracking-[0.2em] uppercase leading-none"
             style={{ fontFamily: "'DM Sans', sans-serif" }}
@@ -107,7 +107,7 @@ const Dashboard = () => {
               <div className="flex items-start justify-between mb-5">
                 <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center p-2">
                   {card.iconType === "sheep" ? (
-                    <img src={connectSheep} alt="" className="w-full h-full object-contain -mt-1" />
+                    <img src={connectSheep} alt="" className="w-full h-full object-contain -mt-3" />
                   ) : (
                     <img src={connectLogoC} alt="" className="w-full h-full object-contain" />
                   )}
