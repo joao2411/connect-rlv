@@ -50,18 +50,20 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
   const SidebarContent = () => (
     <>
-      {/* Logo area — sheep + RELIVE */}
-      <div className="flex items-center gap-3 px-5 py-7">
-        <img
-          src={connectSheep}
-          alt="Relive"
-          className="w-8 h-8 object-contain brightness-0 invert opacity-90"
-        />
+      {/* Logo area — C + Connect */}
+      <div className="flex items-center gap-3.5 px-5 py-7">
+        <div className="w-11 h-11 rounded-2xl bg-sidebar-accent/20 flex items-center justify-center p-1.5">
+          <img
+            src={connectLogoC}
+            alt="Connect"
+            className="w-full h-full object-contain brightness-0 invert opacity-90"
+          />
+        </div>
         <span
-          className="text-sidebar-foreground font-bold text-[15px] tracking-[0.2em] uppercase"
+          className="text-sidebar-foreground font-bold text-[15px] tracking-[0.15em] uppercase"
           style={{ fontFamily: "'DM Sans', sans-serif" }}
         >
-          Relive
+          Connect
         </span>
       </div>
 
