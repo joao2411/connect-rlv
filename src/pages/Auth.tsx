@@ -10,10 +10,8 @@ import { motion } from "framer-motion";
 import connectLogo from "@/assets/connect-logo.jpg";
 
 const Auth = () => {
-  const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -23,20 +21,9 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      if (mode === "login") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        navigate("/");
-      } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { data: { name }, emailRedirectTo: window.location.origin },
-        });
-        if (error) throw error;
-        toast({ title: "Cadastro realizado!", description: "Verifique seu e-mail para confirmar o cadastro." });
-        setMode("login");
-      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      navigate("/");
     } catch (error: unknown) {
       toast({
         title: "Erro",
@@ -81,26 +68,13 @@ const Auth = () => {
         {/* Card */}
         <div className="glass-card p-8">
           <h2 className="text-xl font-semibold text-foreground mb-1 text-center" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-            {mode === "login" ? "Entrar" : "Criar conta"}
+            Entrar
           </h2>
           <p className="text-muted-foreground text-sm text-center mb-6">
-            {mode === "login"
-              ? "Acesse com suas credenciais"
-              : "Preencha os dados para criar sua conta"}
+            Acesse com suas credenciais
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {mode === "signup" && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                className="space-y-1.5 overflow-hidden"
-              >
-                <Label htmlFor="name">Nome completo</Label>
-                <Input id="name" type="text" placeholder="Seu nome" value={name} onChange={(e) => setName(e.target.value)} required className="h-11 rounded-xl" />
-              </motion.div>
-            )}
-
             <div className="space-y-1.5">
               <Label htmlFor="email">E-mail</Label>
               <Input id="email" type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="h-11 rounded-xl" />
@@ -117,16 +91,9 @@ const Auth = () => {
             </div>
 
             <Button type="submit" className="w-full h-11 rounded-xl font-semibold mt-2 gradient-gold text-accent-foreground hover:opacity-90 transition-opacity" disabled={loading}>
-              {loading ? "Aguarde..." : mode === "login" ? "Entrar" : "Criar conta"}
+              {loading ? "Aguarde..." : "Entrar"}
             </Button>
           </form>
-
-          <p className="mt-6 text-center text-muted-foreground text-sm">
-            {mode === "login" ? "Não tem conta? " : "Já tem conta? "}
-            <button onClick={() => setMode(mode === "login" ? "signup" : "login")} className="text-accent-foreground font-semibold hover:underline underline-offset-2">
-              {mode === "login" ? "Cadastrar" : "Entrar"}
-            </button>
-          </p>
         </div>
       </motion.div>
     </div>
