@@ -66,11 +66,11 @@ const Dashboard = () => {
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="flex items-center justify-center gap-2.5 mb-4"
+          className="flex items-center justify-center gap-2 mb-6"
         >
-          <img src={connectSheep} alt="Relive" className="w-8 h-8 object-contain" />
+          <img src={connectSheep} alt="Relive" className="w-7 h-7 object-contain -mt-0.5" />
           <span
-            className="text-foreground font-bold text-sm tracking-[0.2em] uppercase"
+            className="text-foreground font-bold text-sm tracking-[0.2em] uppercase leading-none"
             style={{ fontFamily: "'DM Sans', sans-serif" }}
           >
             Relive
@@ -88,7 +88,7 @@ const Dashboard = () => {
             className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground"
             style={{ fontFamily: "'DM Sans', sans-serif" }}
           >
-            Bem-vindo ao Connect Relive
+            Bem-vindo ao Connect
           </h1>
         </motion.div>
 
@@ -163,7 +163,7 @@ const Dashboard = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.8 }}
-          className="text-center text-muted-foreground/50 text-xs md:text-sm mt-32 md:mt-44 italic tracking-wide"
+          className="text-center text-muted-foreground/70 text-xs md:text-sm mt-32 md:mt-44 italic tracking-wide"
           style={{ fontFamily: "'DM Sans', sans-serif" }}
         >
           "Acreditamos nas pessoas mesmo quando elas mesmas não acreditam."
