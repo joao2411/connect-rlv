@@ -16,6 +16,8 @@ export type Database = {
     Tables: {
       discipleship: {
         Row: {
+          admin_region: string | null
+          birth_date: string | null
           created_at: string | null
           created_by: string | null
           disciple_name: string
@@ -28,6 +30,8 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          admin_region?: string | null
+          birth_date?: string | null
           created_at?: string | null
           created_by?: string | null
           disciple_name: string
@@ -40,6 +44,8 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          admin_region?: string | null
+          birth_date?: string | null
           created_at?: string | null
           created_by?: string | null
           disciple_name?: string
