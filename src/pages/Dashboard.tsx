@@ -70,18 +70,12 @@ const Dashboard = () => {
           className="mb-10 md:mb-12"
         >
           <h1
-            className="text-3xl md:text-4xl font-bold text-foreground mb-2"
+            className="text-3xl md:text-4xl font-bold text-foreground"
             style={{ fontFamily: "'DM Sans', sans-serif" }}
           >
             Bem-vindo ao{" "}
-            <span className="text-gradient-gold">Connect</span>
+            <span className="text-gradient-gold">Connect Relive</span>
           </h1>
-          <p
-            className="text-muted-foreground text-sm md:text-base"
-            style={{ fontFamily: "'DM Sans', sans-serif" }}
-          >
-            O que você gostaria de acessar?
-          </p>
         </motion.div>
 
         {/* Cards */}
@@ -113,8 +107,8 @@ const Dashboard = () => {
 
               {/* Badge */}
               {card.badge && (
-                <span
-                  className="inline-block px-2 py-0.5 rounded-md bg-warning/15 text-warning text-[10px] font-bold uppercase tracking-wider mb-1.5"
+               <span
+                  className="inline-block px-3 py-1 rounded-lg bg-warning/20 text-warning text-xs font-bold uppercase tracking-wider mb-2 border border-warning/30"
                   style={{ fontFamily: "'DM Sans', sans-serif" }}
                 >
                   🚧 {card.badge}
