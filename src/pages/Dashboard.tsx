@@ -105,9 +105,9 @@ const Dashboard = () => {
             >
               {/* Icon + Arrow */}
               <div className="flex items-start justify-between mb-5">
-                <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center p-2">
+                <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center overflow-visible">
                   {card.iconType === "sheep" ? (
-                    <img src={connectSheep} alt="" className="w-full h-full object-contain -mt-3" />
+                    <img src={connectSheep} alt="" className="w-12 h-12 object-contain -mt-5" />
                   ) : (
                     <img src={connectLogoC} alt="" className="w-full h-full object-contain" />
                   )}
