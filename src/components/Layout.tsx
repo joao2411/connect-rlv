@@ -6,6 +6,7 @@ import {
   Home,
   Users,
   Heart,
+  Shield,
   LogOut,
   Menu,
   X,
@@ -13,6 +14,8 @@ import {
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import connectLogo from "@/assets/connect-logo.jpg";
+
+const ADMIN_USER_ID = "ac15c1af-d252-4b9a-8cac-1a15882a35ef";
 
 const navItems = [
   { href: "/", label: "Início", icon: Home },
@@ -50,7 +53,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       </div>
 
       <nav className="flex-1 px-3 py-2 space-y-1">
-        {navItems.map(({ href, label, icon: Icon }) => {
+        {[
+          ...navItems,
+          ...(user?.id === ADMIN_USER_ID
+            ? [{ href: "/admin", label: "Administração", icon: Shield }]
+            : []),
+        ].map(({ href, label, icon: Icon }) => {
           const isActive = location.pathname === href;
           return (
             <Link
