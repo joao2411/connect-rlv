@@ -121,16 +121,6 @@ const Auth = () => {
               className="w-full"
             >
               <div className="glass-card p-8">
-                <h2
-                  className="text-xl font-semibold text-foreground mb-1 text-center"
-                  style={{ fontFamily: "'DM Sans', sans-serif" }}
-                >
-                  Entrar
-                </h2>
-                <p className="text-muted-foreground text-sm text-center mb-6">
-                  Acesse com suas credenciais
-                </p>
-
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-1.5">
                     <Label htmlFor="email">E-mail</Label>
