@@ -45,9 +45,9 @@ const Auth = () => {
       <div className="absolute left-5 md:left-10 top-1/2 -translate-y-1/2 hidden md:block">
         <motion.p
           initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 0.35, x: 0 }}
+          animate={{ opacity: 0.8, x: 0 }}
           transition={{ duration: 1, delay: 0.8 }}
-          className="text-foreground text-[11px] font-medium tracking-[0.35em] select-none"
+          className="text-foreground text-xs font-bold tracking-[0.35em] select-none"
           style={{
             writingMode: "vertical-lr",
             fontFamily: "'DM Sans', sans-serif",
@@ -62,9 +62,9 @@ const Auth = () => {
       <div className="absolute right-5 md:right-10 top-1/2 -translate-y-1/2 hidden md:block">
         <motion.p
           initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 0.35, x: 0 }}
+          animate={{ opacity: 0.8, x: 0 }}
           transition={{ duration: 1, delay: 0.8 }}
-          className="text-foreground text-[11px] font-medium tracking-[0.35em] select-none"
+          className="text-foreground text-xs font-bold tracking-[0.35em] select-none"
           style={{
             writingMode: "vertical-lr",
             fontFamily: "'DM Sans', sans-serif",
@@ -106,7 +106,7 @@ const Auth = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 0.7, y: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
-          className="w-8 h-8 md:w-10 md:h-10 object-contain mt-10 md:mt-16 mb-8 md:mb-10"
+          className="w-14 h-14 md:w-20 md:h-20 object-contain mt-10 md:mt-16 mb-8 md:mb-10"
         />
 
         {/* Login card — click logo or auto-show */}
