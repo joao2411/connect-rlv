@@ -76,11 +76,6 @@ const Dashboard = () => {
           </p>
         </motion.div>
 
-        {/* Em construção banner */}
-        <div className="mb-6 rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-5 py-3 text-center">
-          <p className="text-sm font-semibold text-yellow-600 dark:text-yellow-400">🚧 Em construção</p>
-        </div>
-
         {/* Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {cards.map((card, i) => (
@@ -102,6 +97,9 @@ const Dashboard = () => {
               <h2 className="text-2xl font-bold text-foreground mb-1.5">
                 {card.title}
               </h2>
+              {card.href === "/visitantes" && (
+                <span className="inline-block px-2 py-0.5 rounded-md bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 text-[10px] font-semibold mb-1">🚧 Em construção</span>
+              )}
               <p className="text-muted-foreground text-sm mb-4">
                 {card.description}
               </p>
