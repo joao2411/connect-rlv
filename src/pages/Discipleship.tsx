@@ -27,9 +27,20 @@ const emptyForm = {
   discipler_name: "",
   disciple_name: "",
   disciple_phone: "",
+  birth_date: "",
+  admin_region: "",
   start_date: "",
   status: "ativo",
   observations: "",
+};
+
+const calcAge = (birthDate: string) => {
+  const today = new Date();
+  const birth = new Date(birthDate);
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  return age;
 };
 
 const statusConfig: Record<string, { label: string; color: string }> = {
@@ -88,8 +99,10 @@ const Discipleship = () => {
       discipler_name: r.discipler_name,
       disciple_name: r.disciple_name,
       disciple_phone: r.disciple_phone ?? "",
+      birth_date: (r as any).birth_date ?? "",
+      admin_region: (r as any).admin_region ?? "",
       start_date: r.start_date ?? "",
-      status: r.status,
+      status: r.status ?? "ativo",
       observations: r.observations ?? "",
     });
     setEditingId(r.id);
@@ -103,6 +116,8 @@ const Discipleship = () => {
       discipler_name: form.discipler_name.trim(),
       disciple_name: form.disciple_name.trim(),
       disciple_phone: form.disciple_phone.trim() || null,
+      birth_date: form.birth_date || null,
+      admin_region: form.admin_region.trim() || null,
       start_date: form.start_date || null,
       status: form.status,
       observations: form.observations.trim() || null,
@@ -171,6 +186,16 @@ const Discipleship = () => {
                   <div className="space-y-1.5">
                     <Label htmlFor="d-phone">Telefone</Label>
                     <Input id="d-phone" value={form.disciple_phone} onChange={(e) => setForm({ ...form, disciple_phone: e.target.value })} placeholder="(11) 99999-9999" className="h-11 rounded-xl" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="d-birth">Nascimento</Label>
+                    <Input id="d-birth" type="date" value={form.birth_date} onChange={(e) => setForm({ ...form, birth_date: e.target.value })} className="h-11 rounded-xl" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="d-region">Região Adm.</Label>
+                    <Input id="d-region" value={form.admin_region} onChange={(e) => setForm({ ...form, admin_region: e.target.value })} placeholder="Ex: Guará" className="h-11 rounded-xl" />
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="d-date">Início</Label>
@@ -272,7 +297,17 @@ const Discipleship = () => {
                                     {statusConfig[r.status]?.label ?? r.status}
                                   </span>
                                 </div>
-                                <div className="flex gap-3 mt-0.5">
+                                <div className="flex gap-3 mt-0.5 flex-wrap">
+                                  {(r as any).birth_date && (
+                                    <span className="text-muted-foreground text-xs">
+                                      {calcAge((r as any).birth_date)} anos
+                                    </span>
+                                  )}
+                                  {(r as any).admin_region && (
+                                    <span className="text-muted-foreground text-xs">
+                                      📍 {(r as any).admin_region}
+                                    </span>
+                                  )}
                                   {r.disciple_phone && (
                                     <span className="flex items-center gap-1 text-muted-foreground text-xs">
                                       <Phone className="w-3 h-3" />
