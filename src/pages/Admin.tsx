@@ -39,6 +39,7 @@ const Admin = () => {
   const [resetLoading, setResetLoading] = useState(false);
 
   const [usersWithRoles, setUsersWithRoles] = useState<UserWithRole[]>([]);
+  const [pendingChanges, setPendingChanges] = useState<Record<string, boolean>>({});
   const [rolesLoading, setRolesLoading] = useState(false);
 
   const fetchData = async () => {
@@ -138,28 +139,48 @@ const Admin = () => {
     }
   };
 
-  const toggleAdmin = async (userId: string, currentlyAdmin: boolean) => {
+  const toggleAdminLocal = (userId: string) => {
     if (userId === user?.id) {
       toast({ title: "Você não pode remover seu próprio acesso admin", variant: "destructive" });
       return;
     }
+    setPendingChanges((prev) => {
+      const copy = { ...prev };
+      if (userId in copy) {
+        delete copy[userId];
+      } else {
+        const original = usersWithRoles.find((u) => u.id === userId);
+        copy[userId] = !original?.isAdmin;
+      }
+      return copy;
+    });
+  };
 
+  const hasPendingChanges = Object.keys(pendingChanges).length > 0;
+
+  const getEffectiveAdmin = (u: UserWithRole) =>
+    u.id in pendingChanges ? pendingChanges[u.id] : u.isAdmin;
+
+  const handleSaveRoles = async () => {
     setRolesLoading(true);
     try {
-      if (currentlyAdmin) {
-        const { error } = await supabase.from("user_roles").delete().eq("user_id", userId).eq("role", "admin");
-        if (error) throw error;
-        const targetUser = usersWithRoles.find((u) => u.id === userId);
-        toast({ title: "✅ Salvo!", description: `Acesso admin removido de ${targetUser?.name || "usuário"}` });
-      } else {
-        const { error } = await supabase.from("user_roles").insert({ user_id: userId, role: "admin" });
-        if (error) throw error;
-        const targetUser = usersWithRoles.find((u) => u.id === userId);
-        toast({ title: "✅ Salvo!", description: `${targetUser?.name || "Usuário"} agora é admin` });
+      for (const [userId, shouldBeAdmin] of Object.entries(pendingChanges)) {
+        const currentlyAdmin = usersWithRoles.find((u) => u.id === userId)?.isAdmin;
+        if (shouldBeAdmin === currentlyAdmin) continue;
+
+        if (shouldBeAdmin) {
+          const { error } = await supabase.from("user_roles").insert({ user_id: userId, role: "admin" });
+          if (error) throw error;
+        } else {
+          const { error } = await supabase.from("user_roles").delete().eq("user_id", userId).eq("role", "admin");
+          if (error) throw error;
+        }
       }
+      setPendingChanges({});
       await fetchData();
+      toast({ title: "✅ Salvo!", description: "Permissões atualizadas com sucesso" });
     } catch (err: any) {
-      toast({ title: "Erro ao alterar permissão", description: err.message || "Tente novamente", variant: "destructive" });
+      toast({ title: "Erro ao salvar permissões", description: err.message || "Tente novamente", variant: "destructive" });
     } finally {
       setRolesLoading(false);
     }
@@ -250,31 +271,40 @@ const Admin = () => {
               <Users className="w-5 h-5" />
               Acesso Master
             </CardTitle>
-            <CardDescription>Conceda ou remova acesso administrativo</CardDescription>
+            <CardDescription>Marque/desmarque e clique em Salvar para confirmar</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {usersWithRoles.map((u) => (
-                <div key={u.id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/50">
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{u.name}</p>
-                    <p className="text-xs text-muted-foreground">{u.email}</p>
+              {usersWithRoles.map((u) => {
+                const effective = getEffectiveAdmin(u);
+                const changed = u.id in pendingChanges;
+                return (
+                  <div key={u.id} className={`flex items-center justify-between py-2 px-3 rounded-lg ${changed ? "bg-primary/5 ring-1 ring-primary/20" : "bg-muted/50"}`}>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{u.name}</p>
+                      <p className="text-xs text-muted-foreground">{u.email}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {effective && (
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-md">
+                          Admin
+                        </span>
+                      )}
+                      <Switch
+                        checked={effective}
+                        onCheckedChange={() => toggleAdminLocal(u.id)}
+                        disabled={rolesLoading || u.id === user?.id}
+                      />
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {u.isAdmin && (
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-md">
-                        Admin
-                      </span>
-                    )}
-                    <Switch
-                      checked={u.isAdmin}
-                      onCheckedChange={() => toggleAdmin(u.id, u.isAdmin)}
-                      disabled={rolesLoading || u.id === user?.id}
-                    />
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
+            {hasPendingChanges && (
+              <Button className="w-full mt-4" onClick={handleSaveRoles} disabled={rolesLoading}>
+                {rolesLoading ? "Salvando..." : "Salvar Alterações"}
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>
