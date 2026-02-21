@@ -147,15 +147,19 @@ const Admin = () => {
     setRolesLoading(true);
     try {
       if (currentlyAdmin) {
-        await supabase.from("user_roles").delete().eq("user_id", userId).eq("role", "admin");
-        toast({ title: "Acesso admin removido" });
+        const { error } = await supabase.from("user_roles").delete().eq("user_id", userId).eq("role", "admin");
+        if (error) throw error;
+        const targetUser = usersWithRoles.find((u) => u.id === userId);
+        toast({ title: "✅ Salvo!", description: `Acesso admin removido de ${targetUser?.name || "usuário"}` });
       } else {
-        await supabase.from("user_roles").insert({ user_id: userId, role: "admin" });
-        toast({ title: "Acesso admin concedido" });
+        const { error } = await supabase.from("user_roles").insert({ user_id: userId, role: "admin" });
+        if (error) throw error;
+        const targetUser = usersWithRoles.find((u) => u.id === userId);
+        toast({ title: "✅ Salvo!", description: `${targetUser?.name || "Usuário"} agora é admin` });
       }
       await fetchData();
     } catch (err: any) {
-      toast({ title: "Erro ao alterar permissão", description: err.message, variant: "destructive" });
+      toast({ title: "Erro ao alterar permissão", description: err.message || "Tente novamente", variant: "destructive" });
     } finally {
       setRolesLoading(false);
     }
