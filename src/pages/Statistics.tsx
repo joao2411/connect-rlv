@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell } from "recharts";
 import { Users, MapPin, Cake, UserCheck } from "lucide-react";
 
 interface DiscipleshipRow {
@@ -87,33 +87,22 @@ const Statistics = () => {
       .sort((a, b) => b.count - a.count);
   }, [uniquePeople]);
 
-  // Age distribution
+  // Age distribution — one bar per age
   const ageData = useMemo(() => {
     const ages: number[] = [];
     uniquePeople.forEach((p) => {
       if (p.birth_date) ages.push(calcAge(p.birth_date));
     });
-    if (ages.length === 0) return { brackets: [], average: 0, total: 0 };
+    if (ages.length === 0) return { bars: [], average: 0, total: 0 };
 
     const avg = Math.round(ages.reduce((a, b) => a + b, 0) / ages.length);
-    const brackets = new Map<string, number>();
-    ages.forEach((age) => {
-      let bracket: string;
-      if (age < 18) bracket = "< 18";
-      else if (age <= 24) bracket = "18-24";
-      else if (age <= 30) bracket = "25-30";
-      else if (age <= 35) bracket = "31-35";
-      else if (age <= 40) bracket = "36-40";
-      else bracket = "40+";
-      brackets.set(bracket, (brackets.get(bracket) || 0) + 1);
-    });
+    const countMap = new Map<number, number>();
+    ages.forEach((age) => countMap.set(age, (countMap.get(age) || 0) + 1));
+    const bars = Array.from(countMap.entries())
+      .map(([age, count]) => ({ name: String(age), count }))
+      .sort((a, b) => Number(a.name) - Number(b.name));
 
-    const order = ["< 18", "18-24", "25-30", "31-35", "36-40", "40+"];
-    return {
-      brackets: order.filter((b) => brackets.has(b)).map((name) => ({ name, count: brackets.get(name)! })),
-      average: avg,
-      total: ages.length,
-    };
+    return { bars, average: avg, total: ages.length };
   }, [uniquePeople]);
 
   // Gender distribution
@@ -131,13 +120,6 @@ const Statistics = () => {
     return result;
   }, [uniquePeople]);
 
-  const raChartConfig = useMemo(() => {
-    const config: Record<string, { label: string; color: string }> = {};
-    raData.forEach((d, i) => {
-      config[d.name] = { label: d.name, color: COLORS[i % COLORS.length] };
-    });
-    return config;
-  }, [raData]);
 
   const genderChartConfig = {
     Masculino: { label: "Masculino", color: "hsl(225, 60%, 25%)" },
@@ -209,7 +191,7 @@ const Statistics = () => {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          {/* RA Distribution */}
+          {/* RA Distribution — Grid cards */}
           <Card className="glass-card col-span-full">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -218,35 +200,22 @@ const Statistics = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ChartContainer config={raChartConfig} className="h-[300px] w-full">
-                <BarChart data={raData} layout="vertical" margin={{ left: 0, right: 20, top: 5, bottom: 5 }}>
-                  <XAxis type="number" allowDecimals={false} />
-                  <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 12 }} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="count" radius={[0, 6, 6, 0]}>
-                    {raData.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ChartContainer>
-
-              {/* Expandable people list per RA */}
-              <div className="mt-4 space-y-2">
-                {raData.map((ra) => (
-                  <div key={ra.name} className="border border-border/50 rounded-xl overflow-hidden">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {raData.map((ra, i) => (
+                  <div key={ra.name}>
                     <button
                       onClick={() => setExpandedRA(expandedRA === ra.name ? null : ra.name)}
-                      className="w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-muted/30 transition-colors"
+                      className="w-full rounded-xl p-3 text-left transition-all hover:scale-[1.02] border border-border/50"
+                      style={{ backgroundColor: `${COLORS[i % COLORS.length]}15` }}
                     >
-                      <span className="font-medium">{ra.name}</span>
-                      <span className="text-muted-foreground text-xs">{ra.count} pessoa(s)</span>
+                      <p className="text-2xl font-bold text-foreground">{ra.count}</p>
+                      <p className="text-xs text-muted-foreground truncate">{ra.name}</p>
                     </button>
                     {expandedRA === ra.name && (
-                      <div className="border-t border-border/50 px-4 py-2 bg-muted/10">
-                        <div className="flex flex-wrap gap-2">
+                      <div className="mt-1 p-2 rounded-lg bg-muted/20 border border-border/30">
+                        <div className="flex flex-wrap gap-1.5">
                           {ra.people.map((name) => (
-                            <span key={name} className="text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-full">
+                            <span key={name} className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
                               {name}
                             </span>
                           ))}
@@ -272,7 +241,7 @@ const Statistics = () => {
             </CardHeader>
             <CardContent>
               <ChartContainer config={{ count: { label: "Pessoas", color: "hsl(225, 60%, 25%)" } }} className="h-[250px] w-full">
-                <BarChart data={ageData.brackets} margin={{ left: 0, right: 10, top: 5, bottom: 5 }}>
+                <BarChart data={ageData.bars} margin={{ left: 0, right: 10, top: 5, bottom: 5 }}>
                   <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                   <YAxis allowDecimals={false} />
                   <ChartTooltip content={<ChartTooltipContent />} />
