@@ -300,11 +300,13 @@ const Admin = () => {
                 );
               })}
             </div>
-            {hasPendingChanges && (
-              <Button className="w-full mt-4" onClick={handleSaveRoles} disabled={rolesLoading}>
-                {rolesLoading ? "Salvando..." : "Salvar Alterações"}
-              </Button>
-            )}
+            <Button
+              className="w-full mt-4"
+              onClick={handleSaveRoles}
+              disabled={rolesLoading || !hasPendingChanges}
+            >
+              {rolesLoading ? "Salvando..." : hasPendingChanges ? "Salvar Alterações" : "Nenhuma alteração pendente"}
+            </Button>
           </CardContent>
         </Card>
       </div>
