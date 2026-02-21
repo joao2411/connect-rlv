@@ -39,6 +39,7 @@ const emptyForm = {
   admin_region: "",
   start_date: "",
   status: "ativo",
+  gender: "",
   observations: "",
 };
 
@@ -159,6 +160,7 @@ const Discipleship = () => {
       admin_region: r.admin_region ?? "",
       start_date: r.start_date ?? "",
       status: r.status ?? "ativo",
+      gender: (r as any).gender ?? "",
       observations: r.observations ?? "",
     });
     setEditingId(r.id);
@@ -176,6 +178,7 @@ const Discipleship = () => {
       admin_region: form.admin_region.trim() || null,
       start_date: form.start_date || null,
       status: form.status,
+      gender: form.gender || null,
       observations: form.observations.trim() || null,
       created_by: user?.id,
     };
@@ -238,7 +241,7 @@ const Discipleship = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground">Discipulado</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground">Discipulados</h1>
             <p className="text-muted-foreground mt-1">{rows.length} relacionamento(s)</p>
           </div>
           {canEdit && (
@@ -282,15 +285,27 @@ const Discipleship = () => {
                       <Input id="d-date" type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} className="h-11 rounded-xl" />
                     </div>
                   </div>
-                  <div className="space-y-1.5">
-                    <Label>Status</Label>
-                    <Select value={form.status} onValueChange={(val) => setForm({ ...form, status: val })}>
-                      <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ativo">Ativo</SelectItem>
-                        <SelectItem value="ausente">Ausente</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label>Status</Label>
+                      <Select value={form.status} onValueChange={(val) => setForm({ ...form, status: val })}>
+                        <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ativo">Ativo</SelectItem>
+                          <SelectItem value="ausente">Ausente</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Sexo</Label>
+                      <Select value={form.gender} onValueChange={(val) => setForm({ ...form, gender: val })}>
+                        <SelectTrigger className="h-11 rounded-xl"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="M">Masculino</SelectItem>
+                          <SelectItem value="F">Feminino</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="d-obs">Observações</Label>

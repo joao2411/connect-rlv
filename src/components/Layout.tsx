@@ -8,6 +8,7 @@ import {
   LogOut,
   Menu,
   X,
+  BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -15,7 +16,8 @@ import connectLogoC from "@/assets/connect-logo-c.png";
 import connectSheep from "@/assets/connect-sheep.png";
 
 const navItems = [
-  { href: "/discipulado", label: "Discipulado", icon: "sheep" as const },
+  { href: "/discipulado", label: "Discipulados", icon: "sheep" as const },
+  { href: "/estatisticas", label: "Estatísticas", icon: "chart" as const },
   { href: "/visitantes", label: "Visitantes", icon: "logo" as const },
 ];
 
@@ -44,6 +46,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     }
     if (type === "logo") {
       return <img src={connectLogoC} alt="" className={cn("object-contain brightness-0 invert", className)} />;
+    }
+    if (type === "chart") {
+      return <BarChart3 className={className} strokeWidth={2.2} />;
     }
     return <Shield className={className} strokeWidth={2.2} />;
   };
