@@ -229,7 +229,7 @@ const Statistics = () => {
           </Card>
 
           {/* Age Distribution */}
-          <Card className="glass-card">
+          <Card className="glass-card col-span-full">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Cake className="w-5 h-5" />
