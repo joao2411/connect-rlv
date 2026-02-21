@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useIsAdmin } from "@/hooks/use-is-admin";
 import { Button } from "@/components/ui/button";
 import {
   Shield,
@@ -13,8 +14,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import connectLogoC from "@/assets/connect-logo-c.png";
 import connectSheep from "@/assets/connect-sheep.png";
 
-const ADMIN_USER_ID = "ac15c1af-d252-4b9a-8cac-1a15882a35ef";
-
 const navItems = [
   { href: "/discipulado", label: "Discipulado", icon: "sheep" as const },
   { href: "/visitantes", label: "Visitantes", icon: "logo" as const },
@@ -22,6 +21,7 @@ const navItems = [
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const { user, signOut } = useAuth();
+  const { isAdmin } = useIsAdmin();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -33,7 +33,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
   const allNavItems = [
     ...navItems,
-    ...(user?.id === ADMIN_USER_ID
+    ...(isAdmin
       ? [{ href: "/admin", label: "Administração", icon: "shield" as const }]
       : []),
   ];
