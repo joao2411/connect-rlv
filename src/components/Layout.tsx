@@ -51,7 +51,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const SidebarContent = () => (
     <>
       {/* Logo area — C + Connect */}
-      <div className="flex items-center gap-3.5 px-5 py-7">
+      <Link to="/" onClick={() => setMobileOpen(false)} className="flex items-center gap-3.5 px-5 py-7 hover:opacity-80 transition-opacity">
         <div className="w-11 h-11 rounded-2xl bg-sidebar-accent/20 flex items-center justify-center p-1.5">
           <img
             src={connectLogoC}
@@ -65,7 +65,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         >
           Connect
         </span>
-      </div>
+      </Link>
 
       {/* Divider */}
       <div className="mx-5 h-px bg-sidebar-border mb-2" />
