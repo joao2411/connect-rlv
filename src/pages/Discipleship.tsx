@@ -73,6 +73,8 @@ const Discipleship = () => {
   const [expandedDiscipler, setExpandedDiscipler] = useState<string | null>(null);
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const [editPersonName, setEditPersonName] = useState<string | null>(null);
+  const [personForm, setPersonForm] = useState({ phone: "", birth_date: "", admin_region: "", gender: "" });
 
   const canEdit = ADMIN_IDS.includes(user?.id ?? "");
 
@@ -210,6 +212,42 @@ const Discipleship = () => {
 
   const toggleDiscipler = (name: string) => {
     setExpandedDiscipler(expandedDiscipler === name ? null : name);
+  };
+
+  const openEditPerson = (name: string) => {
+    const data = personDataMap.get(name);
+    setPersonForm({
+      phone: data?.phone ?? "",
+      birth_date: data?.birth_date ?? "",
+      admin_region: data?.admin_region ?? "",
+      gender: "",
+    });
+    setEditPersonName(name);
+  };
+
+  const handleSavePerson = async () => {
+    if (!editPersonName) return;
+    setSaving(true);
+    const updates: Record<string, string | null> = {
+      disciple_phone: personForm.phone.trim() || null,
+      birth_date: personForm.birth_date || null,
+      admin_region: personForm.admin_region.trim() || null,
+    };
+    if (personForm.gender) updates.gender = personForm.gender;
+
+    const { error } = await supabase
+      .from("discipleship")
+      .update(updates)
+      .eq("disciple_name", editPersonName);
+
+    if (error) {
+      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Dados atualizados!" });
+      setEditPersonName(null);
+      fetchRows();
+    }
+    setSaving(false);
   };
 
   const PersonInfo = ({ name }: { name: string }) => {
@@ -386,6 +424,7 @@ const Discipleship = () => {
                       {disciplerName.charAt(0).toUpperCase()}
                     </div>
                     <div className="text-left">
+                      
                       <p className="font-semibold text-foreground text-base">{disciplerName}</p>
                       <p className="text-muted-foreground text-xs mb-1">
                         {disciples.length} discípulo{disciples.length !== 1 ? "s" : ""}
@@ -393,9 +432,16 @@ const Discipleship = () => {
                       <PersonInfo name={disciplerName} />
                     </div>
                   </div>
-                  <motion.div animate={{ rotate: expandedDiscipler === disciplerName ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                    <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                  </motion.div>
+                  <div className="flex items-center gap-2">
+                    {canEdit && (
+                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={(e) => { e.stopPropagation(); openEditPerson(disciplerName); }}>
+                        <Pencil className="w-3.5 h-3.5" />
+                      </Button>
+                    )}
+                    <motion.div animate={{ rotate: expandedDiscipler === disciplerName ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                      <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                    </motion.div>
+                  </div>
                 </button>
 
                 {/* Disciples list */}
@@ -480,8 +526,42 @@ const Discipleship = () => {
         )}
       </div>
 
-      {/* Dialog for non-admin users - render outside the conditional to support edit triggers */}
-      {canEdit && !dialogOpen && null}
+      {/* Edit person dialog */}
+      <Dialog open={!!editPersonName} onOpenChange={(o) => !o && setEditPersonName(null)}>
+        <DialogContent className="sm:max-w-sm rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Editar dados de {editPersonName}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div className="space-y-1.5">
+              <Label>Telefone</Label>
+              <Input value={personForm.phone} onChange={(e) => setPersonForm({ ...personForm, phone: e.target.value })} placeholder="(61) 99999-9999" className="h-11 rounded-xl" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Nascimento</Label>
+              <Input type="date" value={personForm.birth_date} onChange={(e) => setPersonForm({ ...personForm, birth_date: e.target.value })} className="h-11 rounded-xl" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Região Adm.</Label>
+              <Input value={personForm.admin_region} onChange={(e) => setPersonForm({ ...personForm, admin_region: e.target.value })} placeholder="Ex: Guará" className="h-11 rounded-xl" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Sexo</Label>
+              <Select value={personForm.gender} onValueChange={(val) => setPersonForm({ ...personForm, gender: val })}>
+                <SelectTrigger className="h-11 rounded-xl"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="M">Masculino</SelectItem>
+                  <SelectItem value="F">Feminino</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex gap-3 pt-2">
+              <Button variant="outline" className="flex-1 rounded-xl h-11" onClick={() => setEditPersonName(null)}>Cancelar</Button>
+              <Button className="flex-1 rounded-xl h-11 gradient-gold text-accent-foreground hover:opacity-90" disabled={saving} onClick={handleSavePerson}>{saving ? "Salvando..." : "Salvar"}</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };
