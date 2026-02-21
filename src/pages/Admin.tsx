@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import Layout from "@/components/Layout";
@@ -6,11 +6,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Shield } from "lucide-react";
+import { UserPlus, Shield, KeyRound } from "lucide-react";
 
-const ADMIN_USER_ID = "ac15c1af-d252-4b9a-8cac-1a15882a35ef";
+const ADMIN_USER_IDS = [
+  "ac15c1af-d252-4b9a-8cac-1a15882a35ef",
+  "363c1721-758f-4f77-8a82-0a8876e5e621",
+];
+
+interface Profile {
+  id: string;
+  name: string;
+  email: string | null;
+}
 
 const Admin = () => {
   const { user } = useAuth();
@@ -20,7 +30,24 @@ const Admin = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  if (user?.id !== ADMIN_USER_ID) {
+  // Reset password state
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
+
+  const isAdmin = user && ADMIN_USER_IDS.includes(user.id);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    const fetchProfiles = async () => {
+      const { data } = await supabase.from("profiles").select("id, name, email").order("name");
+      if (data) setProfiles(data);
+    };
+    fetchProfiles();
+  }, [isAdmin]);
+
+  if (!isAdmin) {
     return <Navigate to="/" replace />;
   }
 
@@ -50,6 +77,9 @@ const Admin = () => {
       setName("");
       setEmail("");
       setPassword("");
+      // Refresh profiles list
+      const { data: updated } = await supabase.from("profiles").select("id, name, email").order("name");
+      if (updated) setProfiles(updated);
     } catch (err: any) {
       toast({
         title: "Erro ao criar usuário",
@@ -61,9 +91,49 @@ const Admin = () => {
     }
   };
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!selectedUserId || !newPassword.trim()) {
+      toast({ title: "Selecione o usuário e digite a nova senha", variant: "destructive" });
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast({ title: "A senha deve ter no mínimo 6 caracteres", variant: "destructive" });
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("reset-password", {
+        body: { user_id: selectedUserId, new_password: newPassword },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      const selectedProfile = profiles.find((p) => p.id === selectedUserId);
+      toast({
+        title: "Senha resetada com sucesso!",
+        description: `${selectedProfile?.name} (${selectedProfile?.email})`,
+      });
+      setSelectedUserId("");
+      setNewPassword("");
+    } catch (err: any) {
+      toast({
+        title: "Erro ao resetar senha",
+        description: err.message || "Tente novamente",
+        variant: "destructive",
+      });
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   return (
     <Layout>
-      <div className="max-w-lg mx-auto">
+      <div className="max-w-lg mx-auto space-y-6">
         <div className="flex items-center gap-3 mb-8">
           <div className="p-2.5 rounded-xl bg-primary/10">
             <Shield className="w-6 h-6 text-primary" />
@@ -74,6 +144,7 @@ const Admin = () => {
           </div>
         </div>
 
+        {/* Criar Usuário */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -117,6 +188,51 @@ const Admin = () => {
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Criando..." : "Criar Usuário"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* Resetar Senha */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <KeyRound className="w-5 h-5" />
+              Resetar Senha
+            </CardTitle>
+            <CardDescription>
+              Altere a senha de um usuário existente
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label>Usuário</Label>
+                <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o usuário" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {profiles.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name} ({p.email})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="newPassword">Nova senha</Label>
+                <Input
+                  id="newPassword"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Mínimo 6 caracteres"
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={resetLoading}>
+                {resetLoading ? "Resetando..." : "Resetar Senha"}
               </Button>
             </form>
           </CardContent>
