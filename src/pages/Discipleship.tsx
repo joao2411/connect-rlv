@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from "react";
+import AutocompleteInput from "@/components/AutocompleteInput";
 import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -255,11 +256,11 @@ const Discipleship = () => {
                 <form onSubmit={handleSave} className="space-y-4 mt-2">
                   <div className="space-y-1.5">
                     <Label htmlFor="d-discipler">Discipulador *</Label>
-                    <Input id="d-discipler" value={form.discipler_name} onChange={(e) => setForm({ ...form, discipler_name: e.target.value })} required className="h-11 rounded-xl" />
+                    <AutocompleteInput id="d-discipler" value={form.discipler_name} onChange={(val) => setForm({ ...form, discipler_name: val })} suggestions={allNames} required />
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="d-disciple">Discípulo *</Label>
-                    <Input id="d-disciple" value={form.disciple_name} onChange={(e) => setForm({ ...form, disciple_name: e.target.value })} required className="h-11 rounded-xl" />
+                    <AutocompleteInput id="d-disciple" value={form.disciple_name} onChange={(val) => setForm({ ...form, disciple_name: val })} suggestions={allNames} required />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
