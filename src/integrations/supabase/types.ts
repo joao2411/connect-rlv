@@ -23,6 +23,7 @@ export type Database = {
           disciple_name: string
           disciple_phone: string | null
           discipler_name: string
+          gender: string | null
           id: string
           observations: string | null
           start_date: string | null
@@ -37,6 +38,7 @@ export type Database = {
           disciple_name: string
           disciple_phone?: string | null
           discipler_name: string
+          gender?: string | null
           id?: string
           observations?: string | null
           start_date?: string | null
@@ -51,6 +53,7 @@ export type Database = {
           disciple_name?: string
           disciple_phone?: string | null
           discipler_name?: string
+          gender?: string | null
           id?: string
           observations?: string | null
           start_date?: string | null
