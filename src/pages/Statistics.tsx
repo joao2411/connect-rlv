@@ -84,7 +84,7 @@ const Statistics = () => {
     });
     return Array.from(map.entries())
       .map(([name, people]) => ({ name, count: people.length, people }))
-      .sort((a, b) => b.count - a.count);
+      .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
   }, [uniquePeople]);
 
   // Age distribution — one bar per age
