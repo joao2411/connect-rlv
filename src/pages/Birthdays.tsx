@@ -91,19 +91,20 @@ const Birthdays = () => {
 
   const grouped = useMemo(() => {
     const groups = new Map<number, Person[]>();
-    sorted.forEach((p) => {
-      const next = getNextBirthday(p.birth_date);
-      const month = next.getMonth();
+    people.forEach((p) => {
+      const birth = new Date(p.birth_date);
+      const month = birth.getMonth();
       if (!groups.has(month)) groups.set(month, []);
       groups.get(month)!.push(p);
     });
-    // Sort months starting from current
-    const currentMonth = new Date().getMonth();
-    const monthOrder = Array.from({ length: 12 }, (_, i) => (currentMonth + i) % 12);
+    // Sort each month's people by day
+    groups.forEach((list) => list.sort((a, b) => new Date(a.birth_date).getDate() - new Date(b.birth_date).getDate()));
+    // Months in calendar order: Jan → Dec
+    const monthOrder = Array.from({ length: 12 }, (_, i) => i);
     return monthOrder
       .filter((m) => groups.has(m))
       .map((m) => ({ month: m, people: groups.get(m)! }));
-  }, [sorted]);
+  }, [people]);
 
   const todayBirthdays = useMemo(() => sorted.filter((p) => daysUntilBirthday(p.birth_date) === 0), [sorted]);
 
@@ -151,22 +152,6 @@ const Birthdays = () => {
           </Card>
         )}
 
-        {/* Legend */}
-        <div className="flex flex-wrap gap-4 mb-4 text-xs text-muted-foreground">
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-success/40 border border-success/30" />
-            <span>Já fez aniversário</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-primary/40 border border-primary/20" />
-            <span>Ainda vai fazer</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-warning/40 border border-warning/50" />
-            <span>Hoje!</span>
-          </div>
-        </div>
-
         <div className="space-y-6">
           {grouped.map(({ month, people: monthPeople }) => (
             <div key={month}>
@@ -183,14 +168,14 @@ const Birthdays = () => {
                       key={p.name}
                       className={`glass-card p-3 flex items-center justify-between ${
                         days === 0
-                          ? "border-warning/50 bg-warning/5"
+                          ? "border-2 border-warning"
                           : (() => {
                               const birth = new Date(p.birth_date);
                               const thisYearBday = new Date(new Date().getFullYear(), birth.getMonth(), birth.getDate());
                               const today = new Date();
                               today.setHours(0, 0, 0, 0);
                               thisYearBday.setHours(0, 0, 0, 0);
-                              return thisYearBday < today ? "border-success/30 bg-success/5 opacity-70" : "border-primary/20";
+                              return thisYearBday < today ? "border-2 border-success/50" : "border-2 border-primary/30";
                             })()
                       }`}
                     >
