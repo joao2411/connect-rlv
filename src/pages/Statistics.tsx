@@ -217,7 +217,7 @@ const Statistics = () => {
         {/* Birthday button */}
         <button
           onClick={() => navigate("/aniversarios")}
-          className="w-full mb-8 glass-card p-4 flex items-center gap-4 text-left transition-all hover:scale-[1.01] hover:shadow-md border border-warning/30 bg-warning/5"
+          className="mb-8 glass-card p-4 flex items-center gap-4 text-left transition-all hover:scale-[1.01] hover:shadow-md border border-warning/30 bg-warning/5 max-w-sm"
         >
           <div className="w-12 h-12 rounded-xl bg-warning/15 flex items-center justify-center">
             <Gift className="w-6 h-6 text-warning" />

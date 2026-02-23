@@ -151,6 +151,22 @@ const Birthdays = () => {
           </Card>
         )}
 
+        {/* Legend */}
+        <div className="flex flex-wrap gap-4 mb-4 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-full bg-success/40 border border-success/30" />
+            <span>Já fez aniversário</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-full bg-primary/40 border border-primary/20" />
+            <span>Ainda vai fazer</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-full bg-warning/40 border border-warning/50" />
+            <span>Hoje!</span>
+          </div>
+        </div>
+
         <div className="space-y-6">
           {grouped.map(({ month, people: monthPeople }) => (
             <div key={month}>
@@ -165,7 +181,18 @@ const Birthdays = () => {
                   return (
                     <div
                       key={p.name}
-                      className={`glass-card p-3 flex items-center justify-between ${days === 0 ? "border-warning/50 bg-warning/5" : ""}`}
+                      className={`glass-card p-3 flex items-center justify-between ${
+                        days === 0
+                          ? "border-warning/50 bg-warning/5"
+                          : (() => {
+                              const birth = new Date(p.birth_date);
+                              const thisYearBday = new Date(new Date().getFullYear(), birth.getMonth(), birth.getDate());
+                              const today = new Date();
+                              today.setHours(0, 0, 0, 0);
+                              thisYearBday.setHours(0, 0, 0, 0);
+                              return thisYearBday < today ? "border-success/30 bg-success/5 opacity-70" : "border-primary/20";
+                            })()
+                      }`}
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
