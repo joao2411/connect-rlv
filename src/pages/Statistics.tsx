@@ -1,10 +1,11 @@
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell } from "recharts";
-import { Users, MapPin, Cake, UserCheck } from "lucide-react";
+import { Users, MapPin, Cake, UserCheck, Gift } from "lucide-react";
 
 interface DiscipleshipRow {
   id: string;
@@ -41,6 +42,7 @@ const calcAge = (birthDate: string) => {
 };
 
 const Statistics = () => {
+  const navigate = useNavigate();
   const [rows, setRows] = useState<DiscipleshipRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedRA, setExpandedRA] = useState<string | null>(null);
@@ -120,6 +122,28 @@ const Statistics = () => {
     return result;
   }, [uniquePeople]);
 
+  // Next birthday
+  const nextBirthday = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    let closest: { name: string; date: Date; days: number } | null = null;
+    uniquePeople.forEach((p) => {
+      if (!p.birth_date) return;
+      const birth = new Date(p.birth_date);
+      const next = new Date(today.getFullYear(), birth.getMonth(), birth.getDate());
+      if (next < today) next.setFullYear(today.getFullYear() + 1);
+      // If today is the birthday
+      if (today.getMonth() === birth.getMonth() && today.getDate() === birth.getDate()) {
+        next.setFullYear(today.getFullYear());
+      }
+      next.setHours(0, 0, 0, 0);
+      const days = Math.round((next.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      if (!closest || days < closest.days) {
+        closest = { name: p.disciple_name, date: next, days };
+      }
+    });
+    return closest as { name: string; date: Date; days: number } | null;
+  }, [uniquePeople]);
 
   const genderChartConfig = {
     Masculino: { label: "Masculino", color: "hsl(225, 60%, 25%)" },
@@ -164,7 +188,34 @@ const Statistics = () => {
           <div className="glass-card p-4 flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
               <MapPin className="w-5 h-5 text-success" />
+        </div>
+
+        {/* Birthday button */}
+        <button
+          onClick={() => navigate("/aniversarios")}
+          className="w-full mb-8 glass-card p-4 flex items-center gap-4 text-left transition-all hover:scale-[1.01] hover:shadow-md border border-warning/30 bg-warning/5"
+        >
+          <div className="w-12 h-12 rounded-xl bg-warning/15 flex items-center justify-center">
+            <Gift className="w-6 h-6 text-warning" />
+          </div>
+          {nextBirthday ? (
+            <div className="flex-1">
+              <p className="text-sm text-muted-foreground">
+                {nextBirthday.days === 0 ? "🎉 Aniversariante de hoje!" : `Próximo aniversário em ${nextBirthday.days} dia${nextBirthday.days > 1 ? "s" : ""}`}
+              </p>
+              <p className="text-lg font-bold text-foreground">{nextBirthday.name}</p>
+              <p className="text-xs text-muted-foreground">
+                {nextBirthday.date.toLocaleDateString("pt-BR", { day: "2-digit", month: "long" })}
+              </p>
             </div>
+          ) : (
+            <div className="flex-1">
+              <p className="text-sm text-muted-foreground">Ver aniversários</p>
+              <p className="text-lg font-bold text-foreground">Nenhuma data cadastrada</p>
+            </div>
+          )}
+          <Cake className="w-5 h-5 text-muted-foreground" />
+        </button>
             <div>
               <p className="text-2xl font-bold text-foreground">{raData.filter((d) => d.name !== "Não informado").length}</p>
               <p className="text-xs text-muted-foreground">Regiões</p>

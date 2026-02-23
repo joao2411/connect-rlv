@@ -10,6 +10,7 @@ import Discipleship from "./pages/Discipleship";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import Statistics from "./pages/Statistics";
+import Birthdays from "./pages/Birthdays";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const AppRoutes = () => (
     <Route path="/discipulado" element={<ProtectedRoute><Discipleship /></ProtectedRoute>} />
     <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
     <Route path="/estatisticas" element={<ProtectedRoute><Statistics /></ProtectedRoute>} />
+    <Route path="/aniversarios" element={<ProtectedRoute><Birthdays /></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />
   </Routes>
 );
