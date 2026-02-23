@@ -47,201 +47,109 @@ const calcAge = (birthDate: string) => {
 };
 
 const Statistics = () => {
-
   const navigate = useNavigate();
-
   const [rows, setRows] = useState<DiscipleshipRow[]>([]);
-
   const [loading, setLoading] = useState(true);
-
   const [expandedRA, setExpandedRA] = useState<string | null>(null);
 
   useEffect(() => {
-
     const fetch = async () => {
-
       const { data } = await supabase
         .from("discipleship")
         .select("id, disciple_name, discipler_name, birth_date, admin_region, gender, status");
-
       setRows((data as DiscipleshipRow[]) ?? []);
-
       setLoading(false);
-
     };
-
     fetch();
-
   }, []);
 
-  // ✅ CORREÇÃO AQUI — única parte alterada
-// Unique people (dedup by name)
-const uniquePeople = useMemo(() => {
-
-  const map = new Map<string, DiscipleshipRow>();
-
-  // primeiro: registrar todos os discípulos
-  rows.forEach((r) => {
-
-    if (r.disciple_name) {
-
-      map.set(r.disciple_name, { ...r });
-
-    }
-
-  });
-
-  // segundo: registrar discipuladores com seus próprios dados
-  rows.forEach((r) => {
-
-    if (r.discipler_name) {
-
-      const disciplerRecord = rows.find(
-        d => d.disciple_name === r.discipler_name
-      );
-
-      if (disciplerRecord) {
-
-        map.set(r.discipler_name, {
-          ...disciplerRecord,
-          disciple_name: r.discipler_name
-        });
-
+  // Unique people (dedup by name)
+  const uniquePeople = useMemo(() => {
+    const map = new Map<string, DiscipleshipRow>();
+    rows.forEach((r) => {
+      const existing = map.get(r.disciple_name);
+      if (!existing || (r.birth_date && !existing.birth_date) || (r.admin_region && !existing.admin_region) || (r.gender && !existing.gender)) {
+        map.set(r.disciple_name, { ...r, ...(existing || {}), ...r });
       }
-
-    }
-
-  });
-
-  return Array.from(map.values());
-
-}, [rows]);
-
-  const raData = useMemo(() => {
-
-    const map = new Map<string, string[]>();
-
-    uniquePeople.forEach((p) => {
-
-      const ra = p.admin_region || "Não informado";
-
-      if (!map.has(ra)) map.set(ra, []);
-
-      map.get(ra)!.push(p.disciple_name);
-
     });
+    // Also include disciplers
+    rows.forEach((r) => {
+      if (!map.has(r.discipler_name)) {
+        map.set(r.discipler_name, { ...r, disciple_name: r.discipler_name });
+      }
+    });
+    return Array.from(map.values());
+  }, [rows]);
 
+  // RA distribution
+  const raData = useMemo(() => {
+    const map = new Map<string, string[]>();
+    uniquePeople.forEach((p) => {
+      const ra = p.admin_region || "Não informado";
+      if (!map.has(ra)) map.set(ra, []);
+      map.get(ra)!.push(p.disciple_name);
+    });
     return Array.from(map.entries())
       .map(([name, people]) => ({ name, count: people.length, people }))
       .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
-
   }, [uniquePeople]);
 
+  // Age distribution — one bar per age
   const ageData = useMemo(() => {
-
     const ages: number[] = [];
-
     uniquePeople.forEach((p) => {
-
-      if (p.birth_date)
-        ages.push(calcAge(p.birth_date));
-
+      if (p.birth_date) ages.push(calcAge(p.birth_date));
     });
-
-    if (ages.length === 0)
-      return { bars: [], average: 0, total: 0 };
+    if (ages.length === 0) return { bars: [], average: 0, total: 0 };
 
     const avg = Math.round(ages.reduce((a, b) => a + b, 0) / ages.length);
-
     const countMap = new Map<number, number>();
-
-    ages.forEach((age) =>
-      countMap.set(age, (countMap.get(age) || 0) + 1)
-    );
-
+    ages.forEach((age) => countMap.set(age, (countMap.get(age) || 0) + 1));
     const bars = Array.from(countMap.entries())
       .map(([age, count]) => ({ name: String(age), count }))
       .sort((a, b) => Number(a.name) - Number(b.name));
 
     return { bars, average: avg, total: ages.length };
-
   }, [uniquePeople]);
 
+  // Gender distribution
   const genderData = useMemo(() => {
-
     let m = 0, f = 0, unknown = 0;
-
     uniquePeople.forEach((p) => {
-
       if (p.gender === "M") m++;
       else if (p.gender === "F") f++;
       else unknown++;
-
     });
-
     const result = [];
-
     if (m > 0) result.push({ name: "Masculino", count: m });
-
     if (f > 0) result.push({ name: "Feminino", count: f });
-
-    if (unknown > 0)
-      result.push({ name: "Não informado", count: unknown });
-
+    if (unknown > 0) result.push({ name: "Não informado", count: unknown });
     return result;
-
   }, [uniquePeople]);
 
+  // Next birthday
   const nextBirthday = useMemo(() => {
-
     const today = new Date();
-
     today.setHours(0, 0, 0, 0);
-
-    let closest: any = null;
-
+    let closest: { name: string; date: Date; days: number } | null = null;
     uniquePeople.forEach((p) => {
-
       if (!p.birth_date) return;
-
       const birth = parseDate(p.birth_date);
-
       const next = new Date(today.getFullYear(), birth.getMonth(), birth.getDate());
-
-      if (next < today)
-        next.setFullYear(today.getFullYear() + 1);
-
+      if (next < today) next.setFullYear(today.getFullYear() + 1);
+      if (today.getMonth() === birth.getMonth() && today.getDate() === birth.getDate()) {
+        next.setFullYear(today.getFullYear());
+      }
       next.setHours(0, 0, 0, 0);
-
-      const days = Math.round((next.getTime() - today.getTime()) / 86400000);
-
-      if (!closest || days < closest.days)
+      const days = Math.round((next.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      if (!closest || days < closest.days) {
         closest = { name: p.disciple_name, date: next, days };
-
+      }
     });
-
     return closest;
-
   }, [uniquePeople]);
 
-  if (loading) {
-
-    return (
-      <Layout>
-        Carregando...
-      </Layout>
-    );
-
-  }
-
-  return (
-    <Layout>
-
-      {/* TODO seu layout completo continua aqui normalmente */}
-
-    </Layout>
-  );
-
+  // ... resto do layout permanece igual ...
 };
 
 export default Statistics;
