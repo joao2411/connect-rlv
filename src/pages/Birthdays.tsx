@@ -6,6 +6,11 @@ import { Cake, Gift, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
+const parseDate = (dateString: string): Date => {
+  const [year, month, day] = dateString.split("-");
+  return new Date(Number(year), Number(month) - 1, Number(day));
+};
+
 interface Person {
   name: string;
   birth_date: string;
@@ -14,7 +19,7 @@ interface Person {
 
 const getNextBirthday = (birthDate: string): Date => {
   const today = new Date();
-  const birth = new Date(birthDate);
+  const birth = parseDate(birthDate);
   const next = new Date(today.getFullYear(), birth.getMonth(), birth.getDate());
   if (next < today) {
     next.setFullYear(today.getFullYear() + 1);
@@ -31,7 +36,7 @@ const getNextBirthday = (birthDate: string): Date => {
 
 const calcAge = (birthDate: string) => {
   const today = new Date();
-  const birth = new Date(birthDate);
+  const birth = parseDate(birthDate);
   let age = today.getFullYear() - birth.getFullYear();
   const m = today.getMonth() - birth.getMonth();
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
@@ -47,7 +52,7 @@ const daysUntilBirthday = (birthDate: string): number => {
 };
 
 const formatDate = (birthDate: string): string => {
-  const birth = new Date(birthDate);
+  const birth = parseDate(birthDate);
   return birth.toLocaleDateString("pt-BR", { day: "2-digit", month: "long" });
 };
 
@@ -92,13 +97,13 @@ const Birthdays = () => {
   const grouped = useMemo(() => {
     const groups = new Map<number, Person[]>();
     people.forEach((p) => {
-      const birth = new Date(p.birth_date);
+      const birth = parseDate(p.birth_date);
       const month = birth.getMonth();
       if (!groups.has(month)) groups.set(month, []);
       groups.get(month)!.push(p);
     });
     // Sort each month's people by day
-    groups.forEach((list) => list.sort((a, b) => new Date(a.birth_date).getDate() - new Date(b.birth_date).getDate()));
+    groups.forEach((list) => list.sort((a, b) => parseDate(a.birth_date).getDate() - parseDate(b.birth_date).getDate()));
     // Months in calendar order: Jan → Dec
     const monthOrder = Array.from({ length: 12 }, (_, i) => i);
     return monthOrder
@@ -170,7 +175,7 @@ const Birthdays = () => {
                         days === 0
                           ? "border-2 border-warning"
                           : (() => {
-                              const birth = new Date(p.birth_date);
+                              const birth = parseDate(p.birth_date);
                               const thisYearBday = new Date(new Date().getFullYear(), birth.getMonth(), birth.getDate());
                               const today = new Date();
                               today.setHours(0, 0, 0, 0);
@@ -181,7 +186,7 @@ const Birthdays = () => {
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
-                          {new Date(p.birth_date).getDate()}
+                          {parseDate(p.birth_date).getDate()}
                         </div>
                         <div>
                           <p className="font-medium text-foreground">{p.name}</p>
