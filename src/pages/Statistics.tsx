@@ -7,6 +7,11 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell } from "recharts";
 import { Users, MapPin, Cake, UserCheck, Gift } from "lucide-react";
 
+const parseDate = (dateString: string): Date => {
+  const [year, month, day] = dateString.split("-");
+  return new Date(Number(year), Number(month) - 1, Number(day));
+};
+
 interface DiscipleshipRow {
   id: string;
   disciple_name: string;
@@ -34,7 +39,7 @@ const COLORS = [
 
 const calcAge = (birthDate: string) => {
   const today = new Date();
-  const birth = new Date(birthDate);
+  const birth = parseDate(birthDate);
   let age = today.getFullYear() - birth.getFullYear();
   const m = today.getMonth() - birth.getMonth();
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
@@ -129,7 +134,7 @@ const Statistics = () => {
     let closest: { name: string; date: Date; days: number } | null = null;
     uniquePeople.forEach((p) => {
       if (!p.birth_date) return;
-      const birth = new Date(p.birth_date);
+      const birth = parseDate(p.birth_date);
       const next = new Date(today.getFullYear(), birth.getMonth(), birth.getDate());
       if (next < today) next.setFullYear(today.getFullYear() + 1);
       // If today is the birthday
