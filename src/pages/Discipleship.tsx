@@ -10,14 +10,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
+import { useIsAdmin } from "@/hooks/use-is-admin";
 import { Plus, Search, Phone, Pencil, Trash2, ChevronDown, User, MapPin, Calendar, Cake } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-
-const ADMIN_IDS = [
-  "ac15c1af-d252-4b9a-8cac-1a15882a35ef", // João
-  "363c1721-758f-4f77-8a82-0a8876e5e621", // Viviane
-];
 
 interface DiscipleshipRow {
   id: string;
@@ -61,6 +57,7 @@ const formatDate = (d: string | null) => d ? d.split("-").reverse().join("/") : 
 
 const Discipleship = () => {
   const { user } = useAuth();
+  const { isAdmin } = useIsAdmin();
   const { toast } = useToast();
   const [rows, setRows] = useState<DiscipleshipRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,7 +73,7 @@ const Discipleship = () => {
   const [editPersonName, setEditPersonName] = useState<string | null>(null);
   const [personForm, setPersonForm] = useState({ phone: "", birth_date: "", admin_region: "", gender: "" });
 
-  const canEdit = ADMIN_IDS.includes(user?.id ?? "");
+  const canEdit = isAdmin;
 
   const fetchRows = async () => {
     const { data, error } = await supabase
