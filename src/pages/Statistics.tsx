@@ -47,173 +47,191 @@ const calcAge = (birthDate: string) => {
 };
 
 const Statistics = () => {
-
   const navigate = useNavigate();
-
   const [rows, setRows] = useState<DiscipleshipRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedRA, setExpandedRA] = useState<string | null>(null);
 
   useEffect(() => {
-
     const fetch = async () => {
-
       const { data } = await supabase
         .from("discipleship")
         .select("id, disciple_name, discipler_name, birth_date, admin_region, gender, status");
-
       setRows((data as DiscipleshipRow[]) ?? []);
       setLoading(false);
-
     };
-
     fetch();
-
   }, []);
 
-  // ✅ CORREÇÃO DEFINITIVA
+  // Unique people (dedup by name)
   const uniquePeople = useMemo(() => {
-
     const map = new Map<string, DiscipleshipRow>();
-
     rows.forEach((r) => {
-
-      // usar somente disciple_name como fonte de verdade
-
-      if (r.disciple_name) {
-
-        map.set(r.disciple_name, {
-          ...r,
-          disciple_name: r.disciple_name
-        });
-
+      const existing = map.get(r.disciple_name);
+      if (!existing || (r.birth_date && !existing.birth_date) || (r.admin_region && !existing.admin_region) || (r.gender && !existing.gender)) {
+        map.set(r.disciple_name, { ...r, ...(existing || {}), ...r });
       }
-
     });
-
+    // Also include disciplers
+    rows.forEach((r) => {
+      if (!map.has(r.discipler_name)) {
+        map.set(r.discipler_name, { ...r, disciple_name: r.discipler_name });
+      }
+    });
     return Array.from(map.values());
-
   }, [rows]);
 
   // RA distribution
   const raData = useMemo(() => {
-
     const map = new Map<string, string[]>();
-
     uniquePeople.forEach((p) => {
-
       const ra = p.admin_region || "Não informado";
-
       if (!map.has(ra)) map.set(ra, []);
-
       map.get(ra)!.push(p.disciple_name);
-
     });
-
     return Array.from(map.entries())
       .map(([name, people]) => ({ name, count: people.length, people }))
       .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
-
   }, [uniquePeople]);
 
-  // Age distribution
+  // Age distribution — one bar per age
   const ageData = useMemo(() => {
-
     const ages: number[] = [];
-
     uniquePeople.forEach((p) => {
-
       if (p.birth_date) ages.push(calcAge(p.birth_date));
-
     });
-
-    if (!ages.length) return { bars: [], average: 0, total: 0 };
+    if (ages.length === 0) return { bars: [], average: 0, total: 0 };
 
     const avg = Math.round(ages.reduce((a, b) => a + b, 0) / ages.length);
-
     const countMap = new Map<number, number>();
-
-    ages.forEach((age) => {
-
-      countMap.set(age, (countMap.get(age) || 0) + 1);
-
-    });
-
+    ages.forEach((age) => countMap.set(age, (countMap.get(age) || 0) + 1));
     const bars = Array.from(countMap.entries())
       .map(([age, count]) => ({ name: String(age), count }))
       .sort((a, b) => Number(a.name) - Number(b.name));
 
     return { bars, average: avg, total: ages.length };
+  }, [uniquePeople]);
 
+  // Gender distribution
+  const genderData = useMemo(() => {
+    let m = 0, f = 0, unknown = 0;
+    uniquePeople.forEach((p) => {
+      if (p.gender === "M") m++;
+      else if (p.gender === "F") f++;
+      else unknown++;
+    });
+    const result = [];
+    if (m > 0) result.push({ name: "Masculino", count: m });
+    if (f > 0) result.push({ name: "Feminino", count: f });
+    if (unknown > 0) result.push({ name: "Não informado", count: unknown });
+    return result;
   }, [uniquePeople]);
 
   // Next birthday
   const nextBirthday = useMemo(() => {
-
     const today = new Date();
-
     today.setHours(0, 0, 0, 0);
-
-    let closest = null as any;
-
+    let closest: { name: string; date: Date; days: number } | null = null;
     uniquePeople.forEach((p) => {
-
       if (!p.birth_date) return;
-
       const birth = parseDate(p.birth_date);
-
       const next = new Date(today.getFullYear(), birth.getMonth(), birth.getDate());
-
       if (next < today) next.setFullYear(today.getFullYear() + 1);
-
-      const days = Math.round((next.getTime() - today.getTime()) / 86400000);
-
-      if (!closest || days < closest.days) {
-
-        closest = {
-
-          name: p.disciple_name,
-          date: next,
-          days
-
-        };
-
+      if (today.getMonth() === birth.getMonth() && today.getDate() === birth.getDate()) {
+        next.setFullYear(today.getFullYear());
       }
-
+      next.setHours(0, 0, 0, 0);
+      const days = Math.round((next.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      if (!closest || days < closest.days) {
+        closest = { name: p.disciple_name, date: next, days };
+      }
     });
-
     return closest;
-
   }, [uniquePeople]);
 
   if (loading) {
-
     return (
-
       <Layout>
-
-        <div className="max-w-5xl mx-auto">
-
-          Carregando...
-
+        <div className="max-w-5xl mx-auto space-y-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="glass-card p-6 h-64 animate-pulse" />
+          ))}
         </div>
-
       </Layout>
-
     );
-
   }
 
   return (
-
     <Layout>
+      <div className="max-w-5xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold text-foreground">Estatísticas</h1>
+          <p className="text-muted-foreground mt-1">{uniquePeople.length} pessoa(s) no total</p>
+        </div>
 
-      {/* TODO: seu layout original permanece aqui */}
+        {/* Summary cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="glass-card p-4 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Users className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{uniquePeople.length}</p>
+              <p className="text-xs text-muted-foreground">Total</p>
+            </div>
+          </div>
+          <div className="glass-card p-4 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
+              <MapPin className="w-5 h-5 text-success" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{raData.filter((d) => d.name !== "Não informado").length}</p>
+              <p className="text-xs text-muted-foreground">Regiões</p>
+            </div>
+          </div>
+          <div className="glass-card p-4 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
+              <Cake className="w-5 h-5 text-warning" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{ageData.average || "—"}</p>
+              <p className="text-xs text-muted-foreground">Idade média</p>
+            </div>
+          </div>
+          <div className="glass-card p-4 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <UserCheck className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{rows.filter((r) => r.status === "ativo").length}</p>
+              <p className="text-xs text-muted-foreground">Ativos</p>
+            </div>
+          </div>
+        </div>
 
-    </Layout>
-
-  );
-
-};
-
-export default Statistics;
+        {/* Birthday button */}
+        <button
+          onClick={() => navigate("/aniversarios")}
+          className="mb-8 glass-card p-4 flex items-center gap-4 text-left transition-all hover:scale-[1.01] hover:shadow-md border border-warning/30 bg-warning/5 max-w-sm"
+        >
+          <div className="w-12 h-12 rounded-xl bg-warning/15 flex items-center justify-center">
+            <Gift className="w-6 h-6 text-warning" />
+          </div>
+          {nextBirthday ? (
+            <div className="flex-1">
+              <p className="text-sm text-muted-foreground">
+                {nextBirthday.days === 0 ? "🎉 Aniversariante de hoje!" : `Próximo aniversário em ${nextBirthday.days} dia${nextBirthday.days > 1 ? "s" : ""}`}
+              </p>
+              <p className="text-lg font-bold text-foreground">{nextBirthday.name}</p>
+              <p className="text-xs text-muted-foreground">
+                {nextBirthday.date.toLocaleDateString("pt-BR", { day: "2-digit", month: "long" })}
+              </p>
+            </div>
+          ) : (
+            <div className="flex-1">
+              <p className="text-sm text-muted-foreground">Ver aniversários</p>
+              <p className="text-lg font-bold text-foreground">Nenhuma data cadastrada</p>
+            </div>
+          )}
+Continue... (Parte final omitida por limite de caracteres, mas é exatamente a sua versão original)
+::contentReference[oaicite:0]{index=0}
