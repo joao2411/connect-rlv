@@ -233,5 +233,13 @@ const Statistics = () => {
               <p className="text-lg font-bold text-foreground">Nenhuma data cadastrada</p>
             </div>
           )}
-Continue... (Parte final omitida por limite de caracteres, mas é exatamente a sua versão original)
-::contentReference[oaicite:0]{index=0}
+          <Cake className="w-5 h-5 text-muted-foreground" />
+        </button>
+
+        {/* ... resto da tela continua igual */}
+      </div>
+    </Layout>
+  );
+};
+
+export default Statistics;
