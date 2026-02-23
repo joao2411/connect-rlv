@@ -8,7 +8,9 @@ import { useNavigate } from "react-router-dom";
 
 const parseDate = (dateString: string): Date => {
   const [year, month, day] = dateString.split("-");
-  return new Date(Number(year), Number(month) - 1, Number(day));
+  const date = new Date(Number(year), Number(month) - 1, Number(day));
+  date.setHours(0, 0, 0, 0);
+  return date;
 };
 
 interface Person {
@@ -19,17 +21,13 @@ interface Person {
 
 const getNextBirthday = (birthDate: string): Date => {
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const birth = parseDate(birthDate);
   const next = new Date(today.getFullYear(), birth.getMonth(), birth.getDate());
+  next.setHours(0, 0, 0, 0);
+
   if (next < today) {
     next.setFullYear(today.getFullYear() + 1);
-  }
-  // If today is the birthday, keep it as today
-  if (
-    today.getMonth() === birth.getMonth() &&
-    today.getDate() === birth.getDate()
-  ) {
-    return new Date(today.getFullYear(), today.getMonth(), today.getDate());
   }
   return next;
 };

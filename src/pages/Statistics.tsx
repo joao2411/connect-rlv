@@ -34,7 +34,8 @@ const COLORS = [
 
 const calcAge = (birthDate: string) => {
   const today = new Date();
-  const birth = new Date(birthDate);
+  const [year, month, day] = birthDate.split("-").map(Number);
+  const birth = new Date(year, month - 1, day);
   let age = today.getFullYear() - birth.getFullYear();
   const m = today.getMonth() - birth.getMonth();
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
@@ -129,14 +130,15 @@ const Statistics = () => {
     let closest: { name: string; date: Date; days: number } | null = null;
     uniquePeople.forEach((p) => {
       if (!p.birth_date) return;
-      const birth = new Date(p.birth_date);
+      const [year, month, day] = p.birth_date.split("-").map(Number);
+      const birth = new Date(year, month - 1, day);
       const next = new Date(today.getFullYear(), birth.getMonth(), birth.getDate());
-      if (next < today) next.setFullYear(today.getFullYear() + 1);
-      // If today is the birthday
-      if (today.getMonth() === birth.getMonth() && today.getDate() === birth.getDate()) {
-        next.setFullYear(today.getFullYear());
-      }
       next.setHours(0, 0, 0, 0);
+      
+      if (next < today) {
+        next.setFullYear(today.getFullYear() + 1);
+      }
+      
       const days = Math.round((next.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
       if (!closest || days < closest.days) {
         closest = { name: p.disciple_name, date: next, days };
