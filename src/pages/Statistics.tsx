@@ -188,6 +188,30 @@ const Statistics = () => {
           <div className="glass-card p-4 flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
               <MapPin className="w-5 h-5 text-success" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{raData.filter((d) => d.name !== "Não informado").length}</p>
+              <p className="text-xs text-muted-foreground">Regiões</p>
+            </div>
+          </div>
+          <div className="glass-card p-4 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
+              <Cake className="w-5 h-5 text-warning" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{ageData.average || "—"}</p>
+              <p className="text-xs text-muted-foreground">Idade média</p>
+            </div>
+          </div>
+          <div className="glass-card p-4 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <UserCheck className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{rows.filter((r) => r.status === "ativo").length}</p>
+              <p className="text-xs text-muted-foreground">Ativos</p>
+            </div>
+          </div>
         </div>
 
         {/* Birthday button */}
@@ -216,30 +240,6 @@ const Statistics = () => {
           )}
           <Cake className="w-5 h-5 text-muted-foreground" />
         </button>
-            <div>
-              <p className="text-2xl font-bold text-foreground">{raData.filter((d) => d.name !== "Não informado").length}</p>
-              <p className="text-xs text-muted-foreground">Regiões</p>
-            </div>
-          </div>
-          <div className="glass-card p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
-              <Cake className="w-5 h-5 text-warning" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-foreground">{ageData.average || "—"}</p>
-              <p className="text-xs text-muted-foreground">Idade média</p>
-            </div>
-          </div>
-          <div className="glass-card p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <UserCheck className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-foreground">{rows.filter((r) => r.status === "ativo").length}</p>
-              <p className="text-xs text-muted-foreground">Ativos</p>
-            </div>
-          </div>
-        </div>
 
         <div className="grid gap-6 md:grid-cols-2">
           {/* RA Distribution — Grid cards */}
