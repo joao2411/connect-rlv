@@ -75,44 +75,47 @@ const Statistics = () => {
   }, []);
 
   // ✅ CORREÇÃO AQUI — única parte alterada
-  const uniquePeople = useMemo(() => {
+// Unique people (dedup by name)
+const uniquePeople = useMemo(() => {
 
-    const map = new Map<string, DiscipleshipRow>();
+  const map = new Map<string, DiscipleshipRow>();
 
-    rows.forEach((r) => {
+  // primeiro: registrar todos os discípulos
+  rows.forEach((r) => {
 
-      if (r.disciple_name) {
+    if (r.disciple_name) {
 
-        map.set(r.disciple_name, { ...r });
+      map.set(r.disciple_name, { ...r });
+
+    }
+
+  });
+
+  // segundo: registrar discipuladores com seus próprios dados
+  rows.forEach((r) => {
+
+    if (r.discipler_name) {
+
+      const disciplerRecord = rows.find(
+        d => d.disciple_name === r.discipler_name
+      );
+
+      if (disciplerRecord) {
+
+        map.set(r.discipler_name, {
+          ...disciplerRecord,
+          disciple_name: r.discipler_name
+        });
 
       }
 
-    });
+    }
 
-    rows.forEach((r) => {
+  });
 
-      if (r.discipler_name) {
+  return Array.from(map.values());
 
-        const disciplerRecord = rows.find(
-          d => d.disciple_name === r.discipler_name
-        );
-
-        if (disciplerRecord) {
-
-          map.set(r.discipler_name, {
-            ...disciplerRecord,
-            disciple_name: r.discipler_name
-          });
-
-        }
-
-      }
-
-    });
-
-    return Array.from(map.values());
-
-  }, [rows]);
+}, [rows]);
 
   const raData = useMemo(() => {
 
