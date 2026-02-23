@@ -7,11 +7,6 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell } from "recharts";
 import { Users, MapPin, Cake, UserCheck, Gift } from "lucide-react";
 
-const parseDate = (dateString: string): Date => {
-  const [year, month, day] = dateString.split("-");
-  return new Date(Number(year), Number(month) - 1, Number(day));
-};
-
 interface DiscipleshipRow {
   id: string;
   disciple_name: string;
@@ -39,7 +34,8 @@ const COLORS = [
 
 const calcAge = (birthDate: string) => {
   const today = new Date();
-  const birth = parseDate(birthDate);
+  const [year, month, day] = birthDate.split("-").map(Number);
+  const birth = new Date(year, month - 1, day);
   let age = today.getFullYear() - birth.getFullYear();
   const m = today.getMonth() - birth.getMonth();
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
@@ -134,28 +130,39 @@ const Statistics = () => {
     let closest: { name: string; date: Date; days: number } | null = null;
     uniquePeople.forEach((p) => {
       if (!p.birth_date) return;
-      const birth = parseDate(p.birth_date);
+      const [year, month, day] = p.birth_date.split("-").map(Number);
+      const birth = new Date(year, month - 1, day);
       const next = new Date(today.getFullYear(), birth.getMonth(), birth.getDate());
-      if (next < today) next.setFullYear(today.getFullYear() + 1);
-      if (today.getMonth() === birth.getMonth() && today.getDate() === birth.getDate()) {
-        next.setFullYear(today.getFullYear());
-      }
       next.setHours(0, 0, 0, 0);
+      
+      if (next < today) {
+        next.setFullYear(today.getFullYear() + 1);
+      }
+      
       const days = Math.round((next.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
       if (!closest || days < closest.days) {
         closest = { name: p.disciple_name, date: next, days };
       }
     });
-    return closest;
+    return closest as { name: string; date: Date; days: number } | null;
   }, [uniquePeople]);
+
+  const genderChartConfig = {
+    Masculino: { label: "Masculino", color: "hsl(225, 60%, 25%)" },
+    Feminino: { label: "Feminino", color: "hsl(330, 50%, 45%)" },
+    "Não informado": { label: "Não informado", color: "hsl(225, 12%, 70%)" },
+  };
 
   if (loading) {
     return (
       <Layout>
         <div className="max-w-5xl mx-auto space-y-6">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="glass-card p-6 h-64 animate-pulse" />
-          ))}
+          <h1 className="text-3xl md:text-4xl font-bold text-foreground">Estatísticas</h1>
+          <div className="grid gap-6 md:grid-cols-2">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="glass-card p-6 h-64 animate-pulse" />
+            ))}
+          </div>
         </div>
       </Layout>
     );
@@ -236,7 +243,126 @@ const Statistics = () => {
           <Cake className="w-5 h-5 text-muted-foreground" />
         </button>
 
-        {/* ... resto da tela continua igual */}
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* RA Distribution — Grid cards */}
+          <Card className="glass-card col-span-full">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <MapPin className="w-5 h-5" />
+                Por Região Administrativa
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {raData.map((ra, i) => (
+                  <div key={ra.name}>
+                    <button
+                      onClick={() => setExpandedRA(expandedRA === ra.name ? null : ra.name)}
+                      className="w-full rounded-xl p-3 text-left transition-all hover:scale-[1.02] border border-border/50"
+                      style={{ backgroundColor: `${COLORS[i % COLORS.length]}15` }}
+                    >
+                      <p className="text-2xl font-bold text-foreground">{ra.count}</p>
+                      <p className="text-xs text-muted-foreground truncate">{ra.name}</p>
+                    </button>
+                    {expandedRA === ra.name && (
+                      <div className="mt-1 p-2 rounded-lg bg-muted/20 border border-border/30">
+                        <div className="flex flex-wrap gap-1.5">
+                          {ra.people.map((name) => (
+                            <span key={name} className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                              {name}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Age Distribution */}
+          <Card className="glass-card col-span-full">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Cake className="w-5 h-5" />
+                Distribuição por Idade
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Média: <strong>{ageData.average} anos</strong> ({ageData.total} com data registrada)
+              </p>
+            </CardHeader>
+            <CardContent>
+              <ChartContainer config={{ count: { label: "Pessoas", color: "hsl(225, 60%, 25%)" } }} className="h-[250px] w-full">
+                <BarChart data={ageData.bars} margin={{ left: 0, right: 10, top: 5, bottom: 5 }}>
+                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                  <YAxis allowDecimals={false} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar dataKey="count" fill="hsl(225, 60%, 25%)" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+
+          {/* Gender Distribution */}
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Distribuição por Sexo
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ChartContainer config={genderChartConfig} className="h-[250px] w-full">
+                <PieChart>
+                  <Pie
+                    data={genderData}
+                    dataKey="count"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={90}
+                    label={({ name, count }) => `${name}: ${count}`}
+                  >
+                    {genderData.map((entry, i) => (
+                      <Cell
+                        key={entry.name}
+                        fill={
+                          entry.name === "Masculino"
+                            ? "hsl(225, 60%, 25%)"
+                            : entry.name === "Feminino"
+                            ? "hsl(330, 50%, 45%)"
+                            : "hsl(225, 12%, 70%)"
+                        }
+                      />
+                    ))}
+                  </Pie>
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                </PieChart>
+              </ChartContainer>
+              <div className="flex justify-center gap-6 mt-2">
+                {genderData.map((entry) => (
+                  <div key={entry.name} className="flex items-center gap-2 text-sm">
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{
+                        backgroundColor:
+                          entry.name === "Masculino"
+                            ? "hsl(225, 60%, 25%)"
+                            : entry.name === "Feminino"
+                            ? "hsl(330, 50%, 45%)"
+                            : "hsl(225, 12%, 70%)",
+                      }}
+                    />
+                    <span className="text-muted-foreground">
+                      {entry.name}: <strong className="text-foreground">{entry.count}</strong>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </Layout>
   );
