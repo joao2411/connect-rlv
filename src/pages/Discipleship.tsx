@@ -101,8 +101,8 @@ const Discipleship = () => {
   // Build person data map (name -> best available data)
   const personDataMap = useMemo(() => {
     const map = new Map<string, { phone: string | null; birth_date: string | null; admin_region: string | null; gender: string | null }>();
+    // Collect data only from rows where person appears as disciple (the fields belong to the disciple)
     rows.forEach((r) => {
-      // As disciple
       const existing = map.get(r.disciple_name);
       if (!existing || (r.disciple_phone && !existing.phone) || (r.birth_date && !existing.birth_date)) {
         map.set(r.disciple_name, {
@@ -112,14 +112,11 @@ const Discipleship = () => {
           gender: (r as any).gender || existing?.gender || null,
         });
       }
-      // As discipler (only if not already present as disciple)
+    });
+    // Ensure disciplers exist in map with empty data if not also a disciple
+    rows.forEach((r) => {
       if (!map.has(r.discipler_name)) {
-        map.set(r.discipler_name, {
-          phone: r.disciple_phone || null,
-          birth_date: r.birth_date || null,
-          admin_region: r.admin_region || null,
-          gender: (r as any).gender || null,
-        });
+        map.set(r.discipler_name, { phone: null, birth_date: null, admin_region: null, gender: null });
       }
     });
     return map;
@@ -149,6 +146,8 @@ const Discipleship = () => {
     );
     const map = new Map<string, DiscipleshipRow[]>();
     filtered.forEach((r) => {
+      // Skip self-referencing rows (used only to store discipler personal data)
+      if (r.discipler_name === r.disciple_name) return;
       const key = r.discipler_name;
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(r);
@@ -244,26 +243,57 @@ const Discipleship = () => {
     };
     if (personForm.gender) updates.gender = personForm.gender;
 
-    // Update rows where this person is a disciple
-    const { error: err1 } = await supabase
-      .from("discipleship")
-      .update(updates)
-      .eq("disciple_name", editPersonName);
-
-    // Also update rows where this person is a discipler (for discipler-only people)
-    const { error: err2 } = await supabase
-      .from("discipleship")
-      .update(updates)
-      .eq("discipler_name", editPersonName);
-
-    const error = err1 || err2;
-    if (error) {
-      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+    // Check if person exists as a disciple
+    const isDisciple = rows.some((r) => r.disciple_name === editPersonName);
+    
+    if (isDisciple) {
+      // Update rows where this person is a disciple (fields belong to the disciple)
+      const { error } = await supabase
+        .from("discipleship")
+        .update(updates)
+        .eq("disciple_name", editPersonName);
+      if (error) {
+        toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+        setSaving(false);
+        return;
+      }
     } else {
-      toast({ title: "Dados atualizados!" });
-      setEditPersonName(null);
-      fetchRows();
+      // Person is discipler-only: check if self-referencing row already exists
+      const selfRow = rows.find((r) => r.discipler_name === editPersonName && r.disciple_name === editPersonName);
+      if (selfRow) {
+        const { error } = await supabase
+          .from("discipleship")
+          .update(updates)
+          .eq("id", selfRow.id);
+        if (error) {
+          toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+          setSaving(false);
+          return;
+        }
+      } else {
+        const { error } = await supabase
+          .from("discipleship")
+          .insert({
+            discipler_name: editPersonName,
+            disciple_name: editPersonName,
+            disciple_phone: updates.disciple_phone,
+            birth_date: updates.birth_date,
+            admin_region: updates.admin_region,
+            gender: updates.gender || null,
+            status: "ativo",
+            created_by: user?.id,
+          });
+        if (error) {
+          toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+          setSaving(false);
+          return;
+        }
+      }
     }
+
+    toast({ title: "Dados atualizados!" });
+    setEditPersonName(null);
+    fetchRows();
     setSaving(false);
   };
 
