@@ -243,34 +243,30 @@ const Discipleship = () => {
     };
     if (personForm.gender) updates.gender = personForm.gender;
 
-    // Check if person exists as a disciple
-    const isDisciple = rows.some((r) => r.disciple_name === editPersonName);
-    
-    if (isDisciple) {
-      // Update rows where this person is a disciple (fields belong to the disciple)
-      const { error } = await supabase
-        .from("discipleship")
-        .update(updates)
-        .eq("disciple_name", editPersonName);
-      if (error) {
-        toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
-        setSaving(false);
-        return;
+    // Check if person exists as a disciple (excluding self-referencing rows)
+    const isDisciple = rows.some((r) => r.disciple_name === editPersonName && r.discipler_name !== editPersonName);
+    const selfRow = rows.find((r) => r.discipler_name === editPersonName && r.disciple_name === editPersonName);
+
+    try {
+      if (isDisciple) {
+        // Update only rows where this person is a disciple (not self-ref)
+        const { error } = await supabase
+          .from("discipleship")
+          .update(updates)
+          .eq("disciple_name", editPersonName)
+          .neq("discipler_name", editPersonName);
+        if (error) throw error;
       }
-    } else {
-      // Person is discipler-only: check if self-referencing row already exists
-      const selfRow = rows.find((r) => r.discipler_name === editPersonName && r.disciple_name === editPersonName);
+
       if (selfRow) {
+        // Update existing self-referencing row
         const { error } = await supabase
           .from("discipleship")
           .update(updates)
           .eq("id", selfRow.id);
-        if (error) {
-          toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
-          setSaving(false);
-          return;
-        }
-      } else {
+        if (error) throw error;
+      } else if (!isDisciple) {
+        // Create self-ref row only if person isn't a disciple anywhere
         const { error } = await supabase
           .from("discipleship")
           .insert({
@@ -283,17 +279,15 @@ const Discipleship = () => {
             status: "ativo",
             created_by: user?.id,
           });
-        if (error) {
-          toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
-          setSaving(false);
-          return;
-        }
+        if (error) throw error;
       }
-    }
 
-    toast({ title: "Dados atualizados!" });
-    setEditPersonName(null);
-    fetchRows();
+      toast({ title: "Dados atualizados!" });
+      setEditPersonName(null);
+      fetchRows();
+    } catch (error: any) {
+      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+    }
     setSaving(false);
   };
 
