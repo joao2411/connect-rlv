@@ -100,14 +100,25 @@ const Discipleship = () => {
 
   // Build person data map (name -> best available data)
   const personDataMap = useMemo(() => {
-    const map = new Map<string, { phone: string | null; birth_date: string | null; admin_region: string | null }>();
+    const map = new Map<string, { phone: string | null; birth_date: string | null; admin_region: string | null; gender: string | null }>();
     rows.forEach((r) => {
+      // As disciple
       const existing = map.get(r.disciple_name);
       if (!existing || (r.disciple_phone && !existing.phone) || (r.birth_date && !existing.birth_date)) {
         map.set(r.disciple_name, {
           phone: r.disciple_phone || existing?.phone || null,
           birth_date: r.birth_date || existing?.birth_date || null,
           admin_region: r.admin_region || existing?.admin_region || null,
+          gender: (r as any).gender || existing?.gender || null,
+        });
+      }
+      // As discipler (only if not already present as disciple)
+      if (!map.has(r.discipler_name)) {
+        map.set(r.discipler_name, {
+          phone: r.disciple_phone || null,
+          birth_date: r.birth_date || null,
+          admin_region: r.admin_region || null,
+          gender: (r as any).gender || null,
         });
       }
     });
@@ -218,7 +229,7 @@ const Discipleship = () => {
       phone: data?.phone ?? "",
       birth_date: data?.birth_date ?? "",
       admin_region: data?.admin_region ?? "",
-      gender: "",
+      gender: data?.gender ?? "",
     });
     setEditPersonName(name);
   };
@@ -233,11 +244,19 @@ const Discipleship = () => {
     };
     if (personForm.gender) updates.gender = personForm.gender;
 
-    const { error } = await supabase
+    // Update rows where this person is a disciple
+    const { error: err1 } = await supabase
       .from("discipleship")
       .update(updates)
       .eq("disciple_name", editPersonName);
 
+    // Also update rows where this person is a discipler (for discipler-only people)
+    const { error: err2 } = await supabase
+      .from("discipleship")
+      .update(updates)
+      .eq("discipler_name", editPersonName);
+
+    const error = err1 || err2;
     if (error) {
       toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
     } else {
