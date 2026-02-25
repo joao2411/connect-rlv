@@ -1,35 +1,22 @@
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Cake, Gift, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+
+interface Person {
+  nome: string;
+  birth_date: string;
+  admin_region: string | null;
+}
 
 const parseDate = (dateString: string): Date => {
   const [year, month, day] = dateString.split("-");
   const date = new Date(Number(year), Number(month) - 1, Number(day));
   date.setHours(0, 0, 0, 0);
   return date;
-};
-
-interface Person {
-  name: string;
-  birth_date: string;
-  admin_region: string | null;
-}
-
-const getNextBirthday = (birthDate: string): Date => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const birth = parseDate(birthDate);
-  const next = new Date(today.getFullYear(), birth.getMonth(), birth.getDate());
-  next.setHours(0, 0, 0, 0);
-
-  if (next < today) {
-    next.setFullYear(today.getFullYear() + 1);
-  }
-  return next;
 };
 
 const calcAge = (birthDate: string) => {
@@ -47,6 +34,16 @@ const daysUntilBirthday = (birthDate: string): number => {
   const next = getNextBirthday(birthDate);
   next.setHours(0, 0, 0, 0);
   return Math.round((next.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+};
+
+const getNextBirthday = (birthDate: string): Date => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const birth = parseDate(birthDate);
+  const next = new Date(today.getFullYear(), birth.getMonth(), birth.getDate());
+  next.setHours(0, 0, 0, 0);
+  if (next < today) next.setFullYear(today.getFullYear() + 1);
+  return next;
 };
 
 const formatDate = (birthDate: string): string => {
@@ -67,22 +64,14 @@ const Birthdays = () => {
   useEffect(() => {
     const fetchData = async () => {
       const { data } = await supabase
-        .from("discipleship")
-        .select("disciple_name, discipler_name, birth_date, admin_region");
-
+        .from("pessoas")
+        .select("nome, birth_date, admin_region");
       if (!data) { setLoading(false); return; }
-
-      const map = new Map<string, Person>();
-      data.forEach((r) => {
-        if (r.birth_date && !map.has(r.disciple_name)) {
-          map.set(r.disciple_name, { name: r.disciple_name, birth_date: r.birth_date, admin_region: r.admin_region });
-        }
-        if (r.birth_date && !map.has(r.discipler_name)) {
-          map.set(r.discipler_name, { name: r.discipler_name, birth_date: r.birth_date, admin_region: r.admin_region });
-        }
-      });
-
-      setPeople(Array.from(map.values()));
+      setPeople(
+        (data as any[])
+          .filter((p) => p.birth_date)
+          .map((p) => ({ nome: p.nome, birth_date: p.birth_date, admin_region: p.admin_region }))
+      );
       setLoading(false);
     };
     fetchData();
@@ -95,16 +84,12 @@ const Birthdays = () => {
   const grouped = useMemo(() => {
     const groups = new Map<number, Person[]>();
     people.forEach((p) => {
-      const birth = parseDate(p.birth_date);
-      const month = birth.getMonth();
+      const month = parseDate(p.birth_date).getMonth();
       if (!groups.has(month)) groups.set(month, []);
       groups.get(month)!.push(p);
     });
-    // Sort each month's people by day
     groups.forEach((list) => list.sort((a, b) => parseDate(a.birth_date).getDate() - parseDate(b.birth_date).getDate()));
-    // Months in calendar order: Jan → Dec
-    const monthOrder = Array.from({ length: 12 }, (_, i) => i);
-    return monthOrder
+    return Array.from({ length: 12 }, (_, i) => i)
       .filter((m) => groups.has(m))
       .map((m) => ({ month: m, people: groups.get(m)! }));
   }, [people]);
@@ -147,7 +132,7 @@ const Birthdays = () => {
                 <div>
                   <p className="font-semibold text-foreground">🎉 Hoje é aniversário de:</p>
                   <p className="text-muted-foreground">
-                    {todayBirthdays.map((p) => `${p.name} (${calcAge(p.birth_date)} anos)`).join(", ")}
+                    {todayBirthdays.map((p) => `${p.nome} (${calcAge(p.birth_date)} anos)`).join(", ")}
                   </p>
                 </div>
               </div>
@@ -168,7 +153,7 @@ const Birthdays = () => {
                   const age = calcAge(p.birth_date);
                   return (
                     <div
-                      key={p.name}
+                      key={p.nome}
                       className={`glass-card p-3 flex items-center justify-between ${
                         days === 0
                           ? "border-2 border-warning"
@@ -187,7 +172,7 @@ const Birthdays = () => {
                           {parseDate(p.birth_date).getDate()}
                         </div>
                         <div>
-                          <p className="font-medium text-foreground">{p.name}</p>
+                          <p className="font-medium text-foreground">{p.nome}</p>
                           <p className="text-xs text-muted-foreground">
                             {formatDate(p.birth_date)} · {age} anos
                             {p.admin_region && ` · 📍 ${p.admin_region}`}
@@ -214,4 +199,3 @@ const Birthdays = () => {
 };
 
 export default Birthdays;
-
