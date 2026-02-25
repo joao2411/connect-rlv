@@ -14,16 +14,12 @@ export type Database = {
   }
   public: {
     Tables: {
-      discipleship: {
+      discipulado: {
         Row: {
-          admin_region: string | null
-          birth_date: string | null
           created_at: string | null
           created_by: string | null
-          disciple_name: string
-          disciple_phone: string | null
-          discipler_name: string
-          gender: string | null
+          discipulador_id: string
+          discipulo_id: string
           id: string
           observations: string | null
           start_date: string | null
@@ -31,14 +27,10 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          admin_region?: string | null
-          birth_date?: string | null
           created_at?: string | null
           created_by?: string | null
-          disciple_name: string
-          disciple_phone?: string | null
-          discipler_name: string
-          gender?: string | null
+          discipulador_id: string
+          discipulo_id: string
           id?: string
           observations?: string | null
           start_date?: string | null
@@ -46,18 +38,71 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          admin_region?: string | null
-          birth_date?: string | null
           created_at?: string | null
           created_by?: string | null
-          disciple_name?: string
-          disciple_phone?: string | null
-          discipler_name?: string
-          gender?: string | null
+          discipulador_id?: string
+          discipulo_id?: string
           id?: string
           observations?: string | null
           start_date?: string | null
           status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discipulado_discipulador_id_fkey"
+            columns: ["discipulador_id"]
+            isOneToOne: false
+            referencedRelation: "pessoas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discipulado_discipulo_id_fkey"
+            columns: ["discipulo_id"]
+            isOneToOne: false
+            referencedRelation: "pessoas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pessoas: {
+        Row: {
+          admin_region: string | null
+          birth_date: string | null
+          created_at: string | null
+          created_by: string | null
+          gender: string | null
+          id: string
+          nome: string
+          observations: string | null
+          status: string | null
+          telefone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          admin_region?: string | null
+          birth_date?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          gender?: string | null
+          id?: string
+          nome: string
+          observations?: string | null
+          status?: string | null
+          telefone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          admin_region?: string | null
+          birth_date?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          gender?: string | null
+          id?: string
+          nome?: string
+          observations?: string | null
+          status?: string | null
+          telefone?: string | null
           updated_at?: string | null
         }
         Relationships: []

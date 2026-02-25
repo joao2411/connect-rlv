@@ -7,10 +7,9 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell } from "recharts";
 import { Users, MapPin, Cake, UserCheck, Gift } from "lucide-react";
 
-interface DiscipleshipRow {
+interface Pessoa {
   id: string;
-  disciple_name: string;
-  discipler_name: string;
+  nome: string;
   birth_date: string | null;
   admin_region: string | null;
   gender: string | null;
@@ -44,74 +43,54 @@ const calcAge = (birthDate: string) => {
 
 const Statistics = () => {
   const navigate = useNavigate();
-  const [rows, setRows] = useState<DiscipleshipRow[]>([]);
+  const [pessoas, setPessoas] = useState<Pessoa[]>([]);
+  const [activeCount, setActiveCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [expandedRA, setExpandedRA] = useState<string | null>(null);
 
   useEffect(() => {
     const fetch = async () => {
-      const { data } = await supabase
-        .from("discipleship")
-        .select("id, disciple_name, discipler_name, birth_date, admin_region, gender, status");
-      setRows((data as DiscipleshipRow[]) ?? []);
+      const [{ data: pData }, { count }] = await Promise.all([
+        supabase.from("pessoas").select("id, nome, birth_date, admin_region, gender, status"),
+        supabase.from("discipulado").select("*", { count: "exact", head: true }).eq("status", "ativo"),
+      ]);
+      setPessoas((pData as Pessoa[]) ?? []);
+      setActiveCount(count ?? 0);
       setLoading(false);
     };
     fetch();
   }, []);
 
-  // Unique people (dedup by name)
-  const uniquePeople = useMemo(() => {
-    const map = new Map<string, DiscipleshipRow>();
-    rows.forEach((r) => {
-      const existing = map.get(r.disciple_name);
-      if (!existing || (r.birth_date && !existing.birth_date) || (r.admin_region && !existing.admin_region) || (r.gender && !existing.gender)) {
-        map.set(r.disciple_name, { ...r, ...(existing || {}), ...r });
-      }
-    });
-    // Also include disciplers
-    rows.forEach((r) => {
-      if (!map.has(r.discipler_name)) {
-        map.set(r.discipler_name, { ...r, disciple_name: r.discipler_name });
-      }
-    });
-    return Array.from(map.values());
-  }, [rows]);
-
-  // RA distribution
   const raData = useMemo(() => {
     const map = new Map<string, string[]>();
-    uniquePeople.forEach((p) => {
+    pessoas.forEach((p) => {
       const ra = p.admin_region || "Não informado";
       if (!map.has(ra)) map.set(ra, []);
-      map.get(ra)!.push(p.disciple_name);
+      map.get(ra)!.push(p.nome);
     });
     return Array.from(map.entries())
       .map(([name, people]) => ({ name, count: people.length, people }))
       .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
-  }, [uniquePeople]);
+  }, [pessoas]);
 
-  // Age distribution — one bar per age
   const ageData = useMemo(() => {
     const ages: number[] = [];
-    uniquePeople.forEach((p) => {
+    pessoas.forEach((p) => {
       if (p.birth_date) ages.push(calcAge(p.birth_date));
     });
     if (ages.length === 0) return { bars: [], average: 0, total: 0 };
-
     const avg = Math.round(ages.reduce((a, b) => a + b, 0) / ages.length);
     const countMap = new Map<number, number>();
     ages.forEach((age) => countMap.set(age, (countMap.get(age) || 0) + 1));
     const bars = Array.from(countMap.entries())
       .map(([age, count]) => ({ name: String(age), count }))
       .sort((a, b) => Number(a.name) - Number(b.name));
-
     return { bars, average: avg, total: ages.length };
-  }, [uniquePeople]);
+  }, [pessoas]);
 
-  // Gender distribution
   const genderData = useMemo(() => {
     let m = 0, f = 0, unknown = 0;
-    uniquePeople.forEach((p) => {
+    pessoas.forEach((p) => {
       if (p.gender === "M") m++;
       else if (p.gender === "F") f++;
       else unknown++;
@@ -121,31 +100,26 @@ const Statistics = () => {
     if (f > 0) result.push({ name: "Feminino", count: f });
     if (unknown > 0) result.push({ name: "Não informado", count: unknown });
     return result;
-  }, [uniquePeople]);
+  }, [pessoas]);
 
-  // Next birthday
   const nextBirthday = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     let closest: { name: string; date: Date; days: number } | null = null;
-    uniquePeople.forEach((p) => {
+    pessoas.forEach((p) => {
       if (!p.birth_date) return;
       const [year, month, day] = p.birth_date.split("-").map(Number);
       const birth = new Date(year, month - 1, day);
       const next = new Date(today.getFullYear(), birth.getMonth(), birth.getDate());
       next.setHours(0, 0, 0, 0);
-      
-      if (next < today) {
-        next.setFullYear(today.getFullYear() + 1);
-      }
-      
+      if (next < today) next.setFullYear(today.getFullYear() + 1);
       const days = Math.round((next.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
       if (!closest || days < closest.days) {
-        closest = { name: p.disciple_name, date: next, days };
+        closest = { name: p.nome, date: next, days };
       }
     });
     return closest as { name: string; date: Date; days: number } | null;
-  }, [uniquePeople]);
+  }, [pessoas]);
 
   const genderChartConfig = {
     Masculino: { label: "Masculino", color: "hsl(225, 60%, 25%)" },
@@ -173,17 +147,16 @@ const Statistics = () => {
       <div className="max-w-5xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-foreground">Estatísticas</h1>
-          <p className="text-muted-foreground mt-1">{uniquePeople.length} pessoa(s) no total</p>
+          <p className="text-muted-foreground mt-1">{pessoas.length} pessoa(s) no total</p>
         </div>
 
-        {/* Summary cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="glass-card p-4 flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
               <Users className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">{uniquePeople.length}</p>
+              <p className="text-2xl font-bold text-foreground">{pessoas.length}</p>
               <p className="text-xs text-muted-foreground">Total</p>
             </div>
           </div>
@@ -210,13 +183,12 @@ const Statistics = () => {
               <UserCheck className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">{rows.filter((r) => r.status === "ativo").length}</p>
+              <p className="text-2xl font-bold text-foreground">{activeCount}</p>
               <p className="text-xs text-muted-foreground">Ativos</p>
             </div>
           </div>
         </div>
 
-        {/* Birthday button */}
         <button
           onClick={() => navigate("/aniversarios")}
           className="mb-8 glass-card p-4 flex items-center gap-4 text-left transition-all hover:scale-[1.01] hover:shadow-md border border-warning/30 bg-warning/5 max-w-sm"
@@ -244,7 +216,6 @@ const Statistics = () => {
         </button>
 
         <div className="grid gap-6 md:grid-cols-2">
-          {/* RA Distribution — Grid cards */}
           <Card className="glass-card col-span-full">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -281,7 +252,6 @@ const Statistics = () => {
             </CardContent>
           </Card>
 
-          {/* Age Distribution */}
           <Card className="glass-card col-span-full">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -304,7 +274,6 @@ const Statistics = () => {
             </CardContent>
           </Card>
 
-          {/* Gender Distribution */}
           <Card className="glass-card">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -315,26 +284,9 @@ const Statistics = () => {
             <CardContent>
               <ChartContainer config={genderChartConfig} className="h-[250px] w-full">
                 <PieChart>
-                  <Pie
-                    data={genderData}
-                    dataKey="count"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={90}
-                    label={({ name, count }) => `${name}: ${count}`}
-                  >
-                    {genderData.map((entry, i) => (
-                      <Cell
-                        key={entry.name}
-                        fill={
-                          entry.name === "Masculino"
-                            ? "hsl(225, 60%, 25%)"
-                            : entry.name === "Feminino"
-                            ? "hsl(330, 50%, 45%)"
-                            : "hsl(225, 12%, 70%)"
-                        }
-                      />
+                  <Pie data={genderData} dataKey="count" nameKey="name" cx="50%" cy="50%" outerRadius={90} label={({ name, count }) => `${name}: ${count}`}>
+                    {genderData.map((entry) => (
+                      <Cell key={entry.name} fill={entry.name === "Masculino" ? "hsl(225, 60%, 25%)" : entry.name === "Feminino" ? "hsl(330, 50%, 45%)" : "hsl(225, 12%, 70%)" } />
                     ))}
                   </Pie>
                   <ChartTooltip content={<ChartTooltipContent />} />
@@ -343,20 +295,8 @@ const Statistics = () => {
               <div className="flex justify-center gap-6 mt-2">
                 {genderData.map((entry) => (
                   <div key={entry.name} className="flex items-center gap-2 text-sm">
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{
-                        backgroundColor:
-                          entry.name === "Masculino"
-                            ? "hsl(225, 60%, 25%)"
-                            : entry.name === "Feminino"
-                            ? "hsl(330, 50%, 45%)"
-                            : "hsl(225, 12%, 70%)",
-                      }}
-                    />
-                    <span className="text-muted-foreground">
-                      {entry.name}: <strong className="text-foreground">{entry.count}</strong>
-                    </span>
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.name === "Masculino" ? "hsl(225, 60%, 25%)" : entry.name === "Feminino" ? "hsl(330, 50%, 45%)" : "hsl(225, 12%, 70%)" }} />
+                    <span className="text-muted-foreground">{entry.name}: <strong className="text-foreground">{entry.count}</strong></span>
                   </div>
                 ))}
               </div>

@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
 import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
 import connectSheep from "@/assets/connect-sheep.png";
 import connectLogoC from "@/assets/connect-logo-c.png";
 
@@ -27,7 +26,7 @@ const Dashboard = () => {
           .select("*", { count: "exact", head: true })
           .gte("first_visit_date", firstOfMonth),
         supabase
-          .from("discipleship")
+          .from("discipulado")
           .select("*", { count: "exact", head: true })
           .eq("status", "ativo"),
       ]);
@@ -61,7 +60,6 @@ const Dashboard = () => {
   return (
     <Layout>
       <div className="max-w-2xl mx-auto">
-        {/* Sheep + RELIVE header */}
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -69,30 +67,22 @@ const Dashboard = () => {
           className="flex items-center justify-center gap-2 mb-6"
         >
           <img src={connectSheep} alt="Relive" className="w-8 h-8 object-contain -mt-5" />
-          <span
-            className="text-foreground font-bold text-sm tracking-[0.2em] uppercase leading-none"
-            style={{ fontFamily: "'DM Sans', sans-serif" }}
-          >
+          <span className="text-foreground font-bold text-sm tracking-[0.2em] uppercase leading-none" style={{ fontFamily: "'DM Sans', sans-serif" }}>
             Relive
           </span>
         </motion.div>
 
-        {/* Greeting */}
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
           className="mb-10 md:mb-14 text-center"
         >
-          <h1
-            className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground"
-            style={{ fontFamily: "'DM Sans', sans-serif" }}
-          >
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground" style={{ fontFamily: "'DM Sans', sans-serif" }}>
             Bem-vindo ao Connect
           </h1>
         </motion.div>
 
-        {/* Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
           {cards.map((card, i) => (
             <motion.button
@@ -103,7 +93,6 @@ const Dashboard = () => {
               onClick={() => navigate(card.href)}
               className="glass-card-hover text-left p-6 md:p-7 group cursor-pointer"
             >
-              {/* Icon + Arrow */}
               <div className="flex items-start justify-between mb-5">
                 <div className="w-14 h-14 flex items-center justify-center overflow-visible">
                   {card.iconType === "sheep" ? (
@@ -115,33 +104,20 @@ const Dashboard = () => {
                 <ArrowRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-foreground group-hover:translate-x-1 transition-all duration-300 mt-1" />
               </div>
 
-              {/* Title */}
-              <h2
-                className="text-lg md:text-xl font-bold text-foreground mb-1"
-                style={{ fontFamily: "'DM Sans', sans-serif" }}
-              >
+              <h2 className="text-lg md:text-xl font-bold text-foreground mb-1" style={{ fontFamily: "'DM Sans', sans-serif" }}>
                 {card.title}
               </h2>
 
-              {/* Badge */}
               {card.badge && (
-                <span
-                  className="inline-block px-3 py-1 rounded-lg bg-warning/20 text-warning text-xs font-bold uppercase tracking-wider mb-2 border border-warning/30"
-                  style={{ fontFamily: "'DM Sans', sans-serif" }}
-                >
+                <span className="inline-block px-3 py-1 rounded-lg bg-warning/20 text-warning text-xs font-bold uppercase tracking-wider mb-2 border border-warning/30" style={{ fontFamily: "'DM Sans', sans-serif" }}>
                   🚧 {card.badge}
                 </span>
               )}
 
-              {/* Description */}
-              <p
-                className="text-muted-foreground text-[13px] leading-relaxed mb-4"
-                style={{ fontFamily: "'DM Sans', sans-serif" }}
-              >
+              <p className="text-muted-foreground text-[13px] leading-relaxed mb-4" style={{ fontFamily: "'DM Sans', sans-serif" }}>
                 {card.description}
               </p>
 
-              {/* Stat pill */}
               {!loading && (
                 <motion.div
                   initial={{ opacity: 0 }}
@@ -158,7 +134,6 @@ const Dashboard = () => {
           ))}
         </div>
 
-        {/* Footer quote */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
