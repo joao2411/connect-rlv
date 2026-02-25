@@ -275,6 +275,11 @@ const Discipleship = () => {
 
   const editPersonData = editPersonId ? pessoaMap.get(editPersonId) : null;
 
+  console.log("PESSOAS:", pessoas);
+  console.log("TOTAL:", pessoas.length);
+  console.log("PRIMEIRA:", pessoas[0]);
+  console.log("NOME:", pessoas[0]?.nome);
+
   return (
     <Layout>
       <div className="max-w-4xl mx-auto">
