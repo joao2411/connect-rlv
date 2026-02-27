@@ -230,7 +230,7 @@ const Visitors = () => {
   const statusColor = (status: string | null) => {
     if (!status) return "";
     const s = status.toLowerCase();
-    if (s === "em acompanhamento") return "bg-warning/20 text-warning border-warning/30";
+    if (s === "em acompanhamento" || s === "acompanhamento") return "bg-warning/20 text-warning border-warning/30";
     if (s === "encaminhado à discipulado") return "bg-success/20 text-success border-success/30";
     if (s === "encerrado") return "bg-muted text-muted-foreground border-border";
     return "bg-primary/10 text-primary border-primary/30";
@@ -253,7 +253,7 @@ const Visitors = () => {
 
   return (
     <Layout>
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-start justify-between mb-8">
           <div>
@@ -301,7 +301,7 @@ const Visitors = () => {
                   <Select value={form.status} onValueChange={(val) => setForm({ ...form, status: val })}>
                     <SelectTrigger className="h-11 rounded-xl"><SelectValue placeholder="Selecione..." /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Em acompanhamento">Em acompanhamento</SelectItem>
+                      <SelectItem value="Acompanhamento">Acompanhamento</SelectItem>
                       <SelectItem value="Encerrado">Encerrado</SelectItem>
                       <SelectItem value="Encaminhado à discipulado">→ Discipulado</SelectItem>
                     </SelectContent>
@@ -425,7 +425,7 @@ const Visitors = () => {
                         <td className="px-4 py-3 text-muted-foreground">{v.age ?? "—"}</td>
                         <td className="px-4 py-3 text-muted-foreground">{v.admin_region || "—"}</td>
                         <td className="px-4 py-3 text-muted-foreground">{formatDate(v.first_visit_date)}</td>
-                        <td className="px-4 py-3 text-muted-foreground text-xs max-w-[200px] truncate">{v.observations || "—"}</td>
+                        <td className="px-4 py-3 text-muted-foreground text-xs max-w-[250px] whitespace-normal break-words">{v.observations || "—"}</td>
                         <td className="px-4 py-3">
                           <div className="flex gap-1 justify-end">
                             <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => openEdit(v)} title="Editar">
