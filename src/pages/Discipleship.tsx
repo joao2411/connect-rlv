@@ -133,30 +133,44 @@ const Discipleship = () => {
     return allNames.filter((n) => n.toLowerCase().includes(search.toLowerCase())).slice(0, 8);
   }, [allNames, search]);
 
-  // Group relationships by discipler (supports text-only disciplers)
+  // Group relationships by discipler — only by discipulador_id (registered pessoas)
+  // Text-only disciplers don't get their own group; their disciples appear under their own pessoa group
   const grouped = useMemo(() => {
+    // Only group by registered disciplers (discipulador_id is set)
     const filtered = rels.filter((r) => {
-      const discipler = r.discipulador_id ? pessoaMap.get(r.discipulador_id) : null;
       const disciple = pessoaMap.get(r.discipulo_id);
       if (!disciple) return false;
-      const disciplerName = discipler?.nome ?? r.discipulador ?? "";
+      if (!r.discipulador_id) return false; // skip text-only discipler records for grouping
+      const discipler = pessoaMap.get(r.discipulador_id);
+      if (!discipler) return false;
+      const disciplerName = discipler.nome;
       return disciplerName.toLowerCase().includes(search.toLowerCase()) ||
         disciple.nome.toLowerCase().includes(search.toLowerCase());
     });
-    const map = new Map<string, { discipler: Pessoa | null; disciplerName: string; disciples: { rel: Discipulado; pessoa: Pessoa }[] }>();
+    const map = new Map<string, { discipler: Pessoa; disciplerName: string; disciples: { rel: Discipulado; pessoa: Pessoa }[] }>();
     filtered.forEach((r) => {
-      const discipler = r.discipulador_id ? pessoaMap.get(r.discipulador_id) ?? null : null;
+      const discipler = pessoaMap.get(r.discipulador_id!)!;
       const disciple = pessoaMap.get(r.discipulo_id);
       if (!disciple) return;
-      const key = r.discipulador_id ?? `text:${r.discipulador}`;
-      const disciplerName = discipler?.nome ?? r.discipulador ?? "Sem discipulador";
+      const key = r.discipulador_id!;
       if (!map.has(key)) {
-        map.set(key, { discipler, disciplerName, disciples: [] });
+        map.set(key, { discipler, disciplerName: discipler.nome, disciples: [] });
       }
       map.get(key)!.disciples.push({ rel: r, pessoa: disciple });
     });
     return Array.from(map.values()).sort((a, b) => a.disciplerName.localeCompare(b.disciplerName, "pt-BR"));
   }, [rels, pessoaMap, search]);
+
+  // Build a map of pessoa id -> their external discipulador name (from text-only records)
+  const externalDiscipuladorMap = useMemo(() => {
+    const map = new Map<string, string>();
+    rels.forEach((r) => {
+      if (!r.discipulador_id && r.discipulador) {
+        map.set(r.discipulo_id, r.discipulador);
+      }
+    });
+    return map;
+  }, [rels]);
 
   const openNew = () => {
     setForm(emptyRelForm);
@@ -437,7 +451,8 @@ const Discipleship = () => {
         ) : (
           <div className="space-y-3">
             {grouped.map(({ discipler, disciplerName, disciples }) => {
-              const groupKey = discipler?.id ?? `text:${disciplerName}`;
+              const groupKey = discipler.id;
+              const extDisc = externalDiscipuladorMap.get(discipler.id);
               return (
               <div key={groupKey} className="glass-card overflow-hidden">
                 <button
@@ -453,15 +468,14 @@ const Discipleship = () => {
                       <p className="text-muted-foreground text-xs mb-1">
                         {disciples.length} discípulo{disciples.length !== 1 ? "s" : ""}
                       </p>
-                      {discipler ? (
-                        <PersonInfo pessoa={discipler} />
-                      ) : (
-                        <span className="text-xs text-muted-foreground/60 italic">Externo ao ministério</span>
+                      {extDisc && (
+                        <p className="text-xs text-muted-foreground/60 italic mb-1">Discipulado por: {extDisc}</p>
                       )}
+                      <PersonInfo pessoa={discipler} />
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {canEdit && discipler && (
+                    {canEdit && (
                       <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={(e) => { e.stopPropagation(); openEditPerson(discipler); }}>
                         <Pencil className="w-3.5 h-3.5" />
                       </Button>
