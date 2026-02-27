@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
-import { Plus, Search, Phone, Calendar, Pencil, Trash2, Users, UserPlus } from "lucide-react";
+import { Plus, Search, Phone, Calendar, Pencil, Trash2, Users, UserPlus, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface Visitor {
@@ -37,6 +37,11 @@ const emptyForm = {
   status: "",
 };
 
+const MONTH_NAMES = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+];
+
 const Visitors = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -50,32 +55,70 @@ const Visitors = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [convertId, setConvertId] = useState<string | null>(null);
   const [converting, setConverting] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState<string>(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  });
 
   const fetchVisitors = async () => {
     const { data, error } = await supabase
       .from("visitors")
       .select("*")
-      .order("first_visit_date", { ascending: false });
+      .order("first_visit_date", { ascending: true });
     if (!error) setVisitors(data ?? []);
     setLoading(false);
   };
 
   useEffect(() => { fetchVisitors(); }, []);
 
-  const filtered = visitors.filter((v) =>
-    v.name.toLowerCase().includes(search.toLowerCase()) ||
-    (v.phone ?? "").includes(search)
-  );
+  // Available months from visitor data
+  const availableMonths = useMemo(() => {
+    const months = new Set<string>();
+    visitors.forEach((v) => {
+      const [year, month] = v.first_visit_date.split("-");
+      months.add(`${year}-${month}`);
+    });
+    return Array.from(months).sort();
+  }, [visitors]);
+
+  // Ensure selectedMonth is valid
+  useEffect(() => {
+    if (availableMonths.length > 0 && !availableMonths.includes(selectedMonth)) {
+      setSelectedMonth(availableMonths[availableMonths.length - 1]);
+    }
+  }, [availableMonths, selectedMonth]);
+
+  const filtered = useMemo(() => {
+    return visitors
+      .filter((v) => v.first_visit_date.startsWith(selectedMonth))
+      .filter((v) =>
+        v.name.toLowerCase().includes(search.toLowerCase()) ||
+        (v.phone ?? "").includes(search)
+      );
+  }, [visitors, selectedMonth, search]);
 
   const visitorsThisMonth = useMemo(() => {
     const now = new Date();
-    const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
-    return visitors.filter((v) => v.first_visit_date >= firstOfMonth).length;
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    return visitors.filter((v) => v.first_visit_date.startsWith(currentMonth)).length;
   }, [visitors]);
 
   const formatDate = (dateStr: string) => {
     const [year, month, day] = dateStr.split("-");
     return `${day}/${month}/${year}`;
+  };
+
+  const formatMonthLabel = (monthKey: string) => {
+    const [year, month] = monthKey.split("-");
+    return `${MONTH_NAMES[parseInt(month, 10) - 1]} ${year}`;
+  };
+
+  const navigateMonth = (direction: -1 | 1) => {
+    const idx = availableMonths.indexOf(selectedMonth);
+    const newIdx = idx + direction;
+    if (newIdx >= 0 && newIdx < availableMonths.length) {
+      setSelectedMonth(availableMonths[newIdx]);
+    }
   };
 
   const openNew = () => {
@@ -144,7 +187,6 @@ const Visitors = () => {
   const handleConvertToDisciple = async (visitor: Visitor) => {
     setConverting(true);
 
-    // 1. Create person in pessoas table
     const { data: newPessoa, error: pessoaError } = await supabase
       .from("pessoas")
       .insert({
@@ -163,7 +205,6 @@ const Visitors = () => {
       return;
     }
 
-    // 2. Create discipleship entry
     const { error: discError } = await supabase
       .from("discipulado")
       .insert({
@@ -178,7 +219,6 @@ const Visitors = () => {
       return;
     }
 
-    // 3. Update visitor status
     await supabase.from("visitors").update({ status: "Encaminhado à discipulado" }).eq("id", visitor.id);
 
     toast({ title: "Visitante convertido em discípulo!", description: `${visitor.name} foi adicionado ao discipulado.` });
@@ -195,6 +235,21 @@ const Visitors = () => {
     if (s === "encerrado") return "bg-muted text-muted-foreground border-border";
     return "bg-primary/10 text-primary border-primary/30";
   };
+
+  const displayStatus = (status: string | null) => {
+    if (!status) return null;
+    if (status.toLowerCase() === "encaminhado à discipulado") {
+      return (
+        <span className="inline-flex items-center gap-1">
+          <ArrowRight className="w-3 h-3" />
+          Discipulado
+        </span>
+      );
+    }
+    return status;
+  };
+
+  const currentMonthIdx = availableMonths.indexOf(selectedMonth);
 
   return (
     <Layout>
@@ -248,7 +303,7 @@ const Visitors = () => {
                     <SelectContent>
                       <SelectItem value="Em acompanhamento">Em acompanhamento</SelectItem>
                       <SelectItem value="Encerrado">Encerrado</SelectItem>
-                      <SelectItem value="Encaminhado à discipulado">Encaminhado à discipulado</SelectItem>
+                      <SelectItem value="Encaminhado à discipulado">→ Discipulado</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -263,11 +318,6 @@ const Visitors = () => {
               </form>
             </DialogContent>
           </Dialog>
-        </div>
-
-        {/* Em construção banner */}
-        <div className="mb-6 rounded-xl border border-warning/30 bg-warning/10 px-5 py-3 text-center">
-          <p className="text-sm font-semibold text-warning">🚧 Em construção</p>
         </div>
 
         {/* Monthly stat */}
@@ -285,6 +335,33 @@ const Visitors = () => {
               <p className="text-3xl font-bold text-foreground">{visitorsThisMonth}</p>
             </div>
           </motion.div>
+        )}
+
+        {/* Month pagination */}
+        {availableMonths.length > 0 && (
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 rounded-xl"
+              disabled={currentMonthIdx <= 0}
+              onClick={() => navigateMonth(-1)}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <span className="text-sm font-semibold text-foreground min-w-[160px] text-center">
+              {formatMonthLabel(selectedMonth)}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 rounded-xl"
+              disabled={currentMonthIdx >= availableMonths.length - 1}
+              onClick={() => navigateMonth(1)}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
         )}
 
         {/* Search */}
@@ -307,7 +384,7 @@ const Visitors = () => {
           </div>
         ) : filtered.length === 0 ? (
           <div className="glass-card p-12 text-center text-muted-foreground">
-            {search ? "Nenhum visitante encontrado." : "Nenhum visitante cadastrado. Clique em '+ Novo'."}
+            {search ? "Nenhum visitante encontrado." : "Nenhum visitante neste mês."}
           </div>
         ) : (
           <>
@@ -338,8 +415,8 @@ const Visitors = () => {
                       >
                         <td className="px-4 py-3">
                           {v.status && (
-                            <span className={`inline-block px-2.5 py-1 rounded-lg text-xs font-semibold border ${statusColor(v.status)}`}>
-                              {v.status}
+                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border ${statusColor(v.status)}`}>
+                              {displayStatus(v.status)}
                             </span>
                           )}
                         </td>
@@ -354,7 +431,6 @@ const Visitors = () => {
                             <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => openEdit(v)} title="Editar">
                               <Pencil className="w-3.5 h-3.5" />
                             </Button>
-                            {/* Convert to disciple */}
                             <Dialog open={convertId === v.id} onOpenChange={(o) => !o && setConvertId(null)}>
                               <DialogTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => setConvertId(v.id)} title="Converter em discípulo">
@@ -376,7 +452,6 @@ const Visitors = () => {
                                 </div>
                               </DialogContent>
                             </Dialog>
-                            {/* Delete */}
                             <Dialog open={deleteId === v.id} onOpenChange={(o) => !o && setDeleteId(null)}>
                               <DialogTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => setDeleteId(v.id)} title="Remover">
@@ -417,8 +492,8 @@ const Visitors = () => {
                     <div className="min-w-0">
                       <p className="font-semibold text-foreground truncate">{v.name}</p>
                       {v.status && (
-                        <span className={`inline-block mt-1 px-2.5 py-0.5 rounded-lg text-xs font-semibold border ${statusColor(v.status)}`}>
-                          {v.status}
+                        <span className={`inline-flex items-center gap-1 mt-1 px-2.5 py-0.5 rounded-lg text-xs font-semibold border ${statusColor(v.status)}`}>
+                          {displayStatus(v.status)}
                         </span>
                       )}
                     </div>
@@ -446,7 +521,6 @@ const Visitors = () => {
                     <p className="text-muted-foreground text-xs mt-2 line-clamp-2">{v.observations}</p>
                   )}
 
-                  {/* Mobile convert/delete dialogs */}
                   <Dialog open={convertId === v.id} onOpenChange={(o) => !o && setConvertId(null)}>
                     <DialogContent className="sm:max-w-sm rounded-2xl">
                       <DialogHeader><DialogTitle>Converter em discípulo?</DialogTitle></DialogHeader>
