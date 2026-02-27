@@ -6,6 +6,7 @@ import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import connectSheep from "@/assets/connect-sheep.png";
 import connectLogoC from "@/assets/connect-logo-c.png";
+import reliveLogo from "@/assets/relive-logo.png";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -64,12 +65,9 @@ const Dashboard = () => {
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="flex items-center justify-center gap-2 mb-6"
+          className="flex items-center justify-center mb-6"
         >
-          <img src={connectSheep} alt="Relive" className="w-8 h-8 object-contain -mt-5" />
-          <span className="text-foreground font-bold text-sm tracking-[0.2em] uppercase leading-none" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-            Relive
-          </span>
+          <img src={reliveLogo} alt="Relive" className="h-10 object-contain" />
         </motion.div>
 
         <motion.div
