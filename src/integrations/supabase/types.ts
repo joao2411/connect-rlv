@@ -154,6 +154,8 @@ export type Database = {
       }
       visitors: {
         Row: {
+          admin_region: string | null
+          age: number | null
           created_at: string | null
           created_by: string | null
           first_visit_date: string
@@ -163,9 +165,12 @@ export type Database = {
           name: string
           observations: string | null
           phone: string | null
+          status: string | null
           updated_at: string | null
         }
         Insert: {
+          admin_region?: string | null
+          age?: number | null
           created_at?: string | null
           created_by?: string | null
           first_visit_date: string
@@ -175,9 +180,12 @@ export type Database = {
           name: string
           observations?: string | null
           phone?: string | null
+          status?: string | null
           updated_at?: string | null
         }
         Update: {
+          admin_region?: string | null
+          age?: number | null
           created_at?: string | null
           created_by?: string | null
           first_visit_date?: string
@@ -187,6 +195,7 @@ export type Database = {
           name?: string
           observations?: string | null
           phone?: string | null
+          status?: string | null
           updated_at?: string | null
         }
         Relationships: []
