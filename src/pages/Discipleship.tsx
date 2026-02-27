@@ -78,7 +78,7 @@ const Discipleship = () => {
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const [editPersonId, setEditPersonId] = useState<string | null>(null);
-  const [personForm, setPersonForm] = useState({ telefone: "", birth_date: "", admin_region: "", gender: "" });
+  const [personForm, setPersonForm] = useState({ telefone: "", birth_date: "", admin_region: "", gender: "", discipulador_nome: "" });
 
   const canEdit = isAdmin;
 
@@ -242,11 +242,17 @@ const Discipleship = () => {
   };
 
   const openEditPerson = (pessoa: Pessoa) => {
+    // Find if this person has a discipulado record as disciple (to get their discipulador)
+    const relAsDisciple = rels.find(r => r.discipulo_id === pessoa.id);
+    const discipuladorNome = relAsDisciple
+      ? (relAsDisciple.discipulador_id ? pessoaMap.get(relAsDisciple.discipulador_id)?.nome ?? "" : relAsDisciple.discipulador ?? "")
+      : "";
     setPersonForm({
       telefone: pessoa.telefone ?? "",
       birth_date: pessoa.birth_date ?? "",
       admin_region: pessoa.admin_region ?? "",
       gender: pessoa.gender ?? "",
+      discipulador_nome: discipuladorNome,
     });
     setEditPersonId(pessoa.id);
   };
@@ -254,6 +260,8 @@ const Discipleship = () => {
   const handleSavePerson = async () => {
     if (!editPersonId) return;
     setSaving(true);
+
+    // Save person data
     const { error } = await supabase.from("pessoas").update({
       telefone: personForm.telefone.trim() || null,
       birth_date: personForm.birth_date || null,
@@ -263,11 +271,39 @@ const Discipleship = () => {
 
     if (error) {
       toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Dados atualizados!" });
-      setEditPersonId(null);
-      fetchData();
+      setSaving(false);
+      return;
     }
+
+    // Save discipulador relationship if provided
+    const discipuladorNome = personForm.discipulador_nome.trim();
+    if (discipuladorNome) {
+      const existingRel = rels.find(r => r.discipulo_id === editPersonId);
+      const existingDiscipler = pessoaByName.get(discipuladorNome);
+      const discipuladorId = existingDiscipler?.id ?? null;
+      const discipuladorText = discipuladorId ? null : discipuladorNome;
+
+      const relPayload: any = {
+        discipulador_id: discipuladorId,
+        discipulador: discipuladorText,
+        discipulo_id: editPersonId,
+        status: "ativo",
+        created_by: user?.id,
+      };
+
+      if (existingRel) {
+        await supabase.from("discipulado").update({
+          discipulador_id: discipuladorId,
+          discipulador: discipuladorText,
+        }).eq("id", existingRel.id);
+      } else {
+        await supabase.from("discipulado").insert(relPayload);
+      }
+    }
+
+    toast({ title: "Dados atualizados!" });
+    setEditPersonId(null);
+    fetchData();
     setSaving(false);
   };
 
@@ -546,6 +582,16 @@ const Discipleship = () => {
                   <SelectItem value="F">Feminino</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Discipulador(a)</Label>
+              <AutocompleteInput
+                value={personForm.discipulador_nome}
+                onChange={(val) => setPersonForm({ ...personForm, discipulador_nome: val })}
+                suggestions={allNames}
+                placeholder="Nome do discipulador(a)"
+                className="h-11 rounded-xl"
+              />
             </div>
             <div className="flex gap-3 pt-2">
               <Button variant="outline" className="flex-1 rounded-xl h-11" onClick={() => setEditPersonId(null)}>Cancelar</Button>
