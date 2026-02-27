@@ -468,9 +468,6 @@ const Discipleship = () => {
                       <p className="text-muted-foreground text-xs mb-1">
                         {disciples.length} discípulo{disciples.length !== 1 ? "s" : ""}
                       </p>
-                      {extDisc && (
-                        <p className="text-xs text-muted-foreground/60 italic mb-1">Discipulado por: {extDisc}</p>
-                      )}
                       <PersonInfo pessoa={discipler} />
                     </div>
                   </div>
