@@ -78,7 +78,7 @@ const Discipleship = () => {
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const [editPersonId, setEditPersonId] = useState<string | null>(null);
-  const [personForm, setPersonForm] = useState({ telefone: "", birth_date: "", admin_region: "", gender: "", discipulador_nome: "" });
+  const [personForm, setPersonForm] = useState({ telefone: "", birth_date: "", admin_region: "", gender: "", discipulador_nome: "", status: "ativo" });
 
   const canEdit = isAdmin;
 
@@ -267,6 +267,7 @@ const Discipleship = () => {
       admin_region: pessoa.admin_region ?? "",
       gender: pessoa.gender ?? "",
       discipulador_nome: discipuladorNome,
+      status: pessoa.status ?? "ativo",
     });
     setEditPersonId(pessoa.id);
   };
@@ -281,6 +282,7 @@ const Discipleship = () => {
       birth_date: personForm.birth_date || null,
       admin_region: personForm.admin_region.trim() || null,
       gender: personForm.gender || null,
+      status: personForm.status || "ativo",
     }).eq("id", editPersonId);
 
     if (error) {
@@ -591,6 +593,16 @@ const Discipleship = () => {
                 <SelectContent>
                   <SelectItem value="M">Masculino</SelectItem>
                   <SelectItem value="F">Feminino</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Status</Label>
+              <Select value={personForm.status} onValueChange={(val) => setPersonForm({ ...personForm, status: val })}>
+                <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ativo">Ativo</SelectItem>
+                  <SelectItem value="ausente">Ausente</SelectItem>
                 </SelectContent>
               </Select>
             </div>
