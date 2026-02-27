@@ -117,7 +117,16 @@ const Discipleship = () => {
     return map;
   }, [pessoas]);
 
-  const allNames = useMemo(() => pessoas.map((p) => p.nome).sort(), [pessoas]);
+  const allNames = useMemo(() => {
+    const names = new Set(pessoas.map((p) => p.nome));
+    // Include text-only discipler names from discipulado records
+    rels.forEach((r) => {
+      if (!r.discipulador_id && r.discipulador) {
+        names.add(r.discipulador);
+      }
+    });
+    return Array.from(names).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  }, [pessoas, rels]);
 
   const searchSuggestions = useMemo(() => {
     if (!search.trim()) return [];
