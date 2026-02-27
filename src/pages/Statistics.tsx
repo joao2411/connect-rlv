@@ -50,12 +50,10 @@ const Statistics = () => {
 
   useEffect(() => {
     const fetch = async () => {
-      const [{ data: pData }, { count }] = await Promise.all([
-        supabase.from("pessoas").select("id, nome, birth_date, admin_region, gender, status"),
-        supabase.from("discipulado").select("*", { count: "exact", head: true }).eq("status", "ativo"),
-      ]);
-      setPessoas((pData as Pessoa[]) ?? []);
-      setActiveCount(count ?? 0);
+      const { data: pData } = await supabase.from("pessoas").select("id, nome, birth_date, admin_region, gender, status");
+      const all = (pData as Pessoa[]) ?? [];
+      setPessoas(all);
+      setActiveCount(all.filter((p) => p.status !== "ausente" && p.status !== "inativo").length);
       setLoading(false);
     };
     fetch();
