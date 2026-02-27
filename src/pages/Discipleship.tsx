@@ -28,8 +28,9 @@ interface Pessoa {
 
 interface Discipulado {
   id: string;
-  discipulador_id: string;
+  discipulador_id: string | null;
   discipulo_id: string;
+  discipulador: string | null;
   status: string | null;
   observations: string | null;
   start_date: string | null;
@@ -123,25 +124,29 @@ const Discipleship = () => {
     return allNames.filter((n) => n.toLowerCase().includes(search.toLowerCase())).slice(0, 8);
   }, [allNames, search]);
 
-  // Group relationships by discipler
+  // Group relationships by discipler (supports text-only disciplers)
   const grouped = useMemo(() => {
     const filtered = rels.filter((r) => {
-      const discipler = pessoaMap.get(r.discipulador_id);
+      const discipler = r.discipulador_id ? pessoaMap.get(r.discipulador_id) : null;
       const disciple = pessoaMap.get(r.discipulo_id);
-      if (!discipler || !disciple) return false;
-      return discipler.nome.toLowerCase().includes(search.toLowerCase()) ||
+      if (!disciple) return false;
+      const disciplerName = discipler?.nome ?? r.discipulador ?? "";
+      return disciplerName.toLowerCase().includes(search.toLowerCase()) ||
         disciple.nome.toLowerCase().includes(search.toLowerCase());
     });
-    const map = new Map<string, { discipler: Pessoa; disciples: { rel: Discipulado; pessoa: Pessoa }[] }>();
+    const map = new Map<string, { discipler: Pessoa | null; disciplerName: string; disciples: { rel: Discipulado; pessoa: Pessoa }[] }>();
     filtered.forEach((r) => {
-      const discipler = pessoaMap.get(r.discipulador_id)!;
-      const disciple = pessoaMap.get(r.discipulo_id)!;
-      if (!map.has(r.discipulador_id)) {
-        map.set(r.discipulador_id, { discipler, disciples: [] });
+      const discipler = r.discipulador_id ? pessoaMap.get(r.discipulador_id) ?? null : null;
+      const disciple = pessoaMap.get(r.discipulo_id);
+      if (!disciple) return;
+      const key = r.discipulador_id ?? `text:${r.discipulador}`;
+      const disciplerName = discipler?.nome ?? r.discipulador ?? "Sem discipulador";
+      if (!map.has(key)) {
+        map.set(key, { discipler, disciplerName, disciples: [] });
       }
-      map.get(r.discipulador_id)!.disciples.push({ rel: r, pessoa: disciple });
+      map.get(key)!.disciples.push({ rel: r, pessoa: disciple });
     });
-    return Array.from(map.values()).sort((a, b) => a.discipler.nome.localeCompare(b.discipler.nome, "pt-BR"));
+    return Array.from(map.values()).sort((a, b) => a.disciplerName.localeCompare(b.disciplerName, "pt-BR"));
   }, [rels, pessoaMap, search]);
 
   const openNew = () => {
@@ -151,10 +156,10 @@ const Discipleship = () => {
   };
 
   const openEdit = (r: Discipulado) => {
-    const discipler = pessoaMap.get(r.discipulador_id);
+    const discipler = r.discipulador_id ? pessoaMap.get(r.discipulador_id) : null;
     const disciple = pessoaMap.get(r.discipulo_id);
     setForm({
-      discipulador_id: discipler?.nome ?? "",
+      discipulador_id: discipler?.nome ?? r.discipulador ?? "",
       discipulo_id: disciple?.nome ?? "",
       status: r.status ?? "ativo",
       observations: r.observations ?? "",
@@ -176,17 +181,21 @@ const Discipleship = () => {
     e.preventDefault();
     setSaving(true);
 
-    const discipuladorId = await getOrCreatePessoa(form.discipulador_id);
     const discipuloId = await getOrCreatePessoa(form.discipulo_id);
-
-    if (!discipuladorId || !discipuloId) {
-      toast({ title: "Erro ao salvar", description: "Não foi possível encontrar/criar pessoa.", variant: "destructive" });
+    if (!discipuloId) {
+      toast({ title: "Erro ao salvar", description: "Não foi possível encontrar/criar discípulo.", variant: "destructive" });
       setSaving(false);
       return;
     }
 
-    const payload = {
+    // Check if discipler exists in pessoas; if not, store as text
+    const existingDiscipler = pessoaByName.get(form.discipulador_id.trim());
+    const discipuladorId = existingDiscipler?.id ?? null;
+    const discipuladorText = discipuladorId ? null : form.discipulador_id.trim();
+
+    const payload: any = {
       discipulador_id: discipuladorId,
+      discipulador: discipuladorText,
       discipulo_id: discipuloId,
       status: form.status,
       observations: form.observations.trim() || null,
@@ -382,38 +391,44 @@ const Discipleship = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {grouped.map(({ discipler, disciples }) => (
-              <div key={discipler.id} className="glass-card overflow-hidden">
+            {grouped.map(({ discipler, disciplerName, disciples }) => {
+              const groupKey = discipler?.id ?? `text:${disciplerName}`;
+              return (
+              <div key={groupKey} className="glass-card overflow-hidden">
                 <button
-                  onClick={() => toggleDiscipler(discipler.id)}
+                  onClick={() => toggleDiscipler(groupKey)}
                   className="w-full flex items-center justify-between px-6 py-5 hover:bg-muted/30 transition-colors"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-11 h-11 rounded-full gradient-navy flex items-center justify-center text-primary-foreground font-bold text-sm">
-                      {discipler.nome.charAt(0).toUpperCase()}
+                      {disciplerName.charAt(0).toUpperCase()}
                     </div>
                     <div className="text-left">
-                      <p className="font-semibold text-foreground text-base">{discipler.nome}</p>
+                      <p className="font-semibold text-foreground text-base">{disciplerName}</p>
                       <p className="text-muted-foreground text-xs mb-1">
                         {disciples.length} discípulo{disciples.length !== 1 ? "s" : ""}
                       </p>
-                      <PersonInfo pessoa={discipler} />
+                      {discipler ? (
+                        <PersonInfo pessoa={discipler} />
+                      ) : (
+                        <span className="text-xs text-muted-foreground/60 italic">Externo ao ministério</span>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {canEdit && (
+                    {canEdit && discipler && (
                       <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={(e) => { e.stopPropagation(); openEditPerson(discipler); }}>
                         <Pencil className="w-3.5 h-3.5" />
                       </Button>
                     )}
-                    <motion.div animate={{ rotate: expandedDiscipler === discipler.id ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                    <motion.div animate={{ rotate: expandedDiscipler === groupKey ? 180 : 0 }} transition={{ duration: 0.2 }}>
                       <ChevronDown className="w-5 h-5 text-muted-foreground" />
                     </motion.div>
                   </div>
                 </button>
 
                 <AnimatePresence>
-                  {expandedDiscipler === discipler.id && (
+                  {expandedDiscipler === groupKey && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
@@ -488,7 +503,8 @@ const Discipleship = () => {
                   )}
                 </AnimatePresence>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
