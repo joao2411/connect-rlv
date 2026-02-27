@@ -106,7 +106,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               )}
               <NavIcon type={icon} className="w-[17px] h-[17px] relative z-10" />
               <span className="relative z-10">{label}</span>
-              {(href === "/visitantes" || href === "/gc") && (
+              {href === "/gc" && (
                 <span className="relative z-10 ml-auto px-2 py-0.5 rounded-md bg-warning/20 text-warning text-[9px] font-bold uppercase tracking-wider border border-warning/30">
                   🚧
                 </span>
