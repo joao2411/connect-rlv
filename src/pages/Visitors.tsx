@@ -192,7 +192,7 @@ const Visitors = () => {
     const s = status.toLowerCase();
     if (s === "em acompanhamento") return "bg-warning/20 text-warning border-warning/30";
     if (s === "encaminhado") return "bg-success/20 text-success border-success/30";
-    if (s === "não respondeu") return "bg-muted text-muted-foreground border-border";
+    if (s === "encerrado") return "bg-muted text-muted-foreground border-border";
     return "bg-primary/10 text-primary border-primary/30";
   };
 
@@ -247,18 +247,10 @@ const Visitors = () => {
                     <SelectTrigger className="h-11 rounded-xl"><SelectValue placeholder="Selecione..." /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Em acompanhamento">Em acompanhamento</SelectItem>
-                      <SelectItem value="Não respondeu">Não respondeu</SelectItem>
+                      <SelectItem value="Encerrado">Encerrado</SelectItem>
                       <SelectItem value="Encaminhado">Encaminhado</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="v-invited">Convidado por</Label>
-                  <Input id="v-invited" value={form.invited_by} onChange={(e) => setForm({ ...form, invited_by: e.target.value })} className="h-11 rounded-xl" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="v-how">Como conheceu a igreja</Label>
-                  <Input id="v-how" value={form.how_found_us} onChange={(e) => setForm({ ...form, how_found_us: e.target.value })} className="h-11 rounded-xl" />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="v-obs">Situação / Resolução</Label>
