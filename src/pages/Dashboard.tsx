@@ -55,7 +55,7 @@ const Dashboard = () => {
       stat: `${visitorsThisMonth} este mês`,
       iconType: "logo",
       href: "/visitantes",
-      badge: "Em construção",
+      badge: null,
     },
     {
       title: "GC",
