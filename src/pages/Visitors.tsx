@@ -337,32 +337,8 @@ const Visitors = () => {
           </motion.div>
         )}
 
-        {/* Month pagination */}
-        {availableMonths.length > 0 && (
-          <div className="flex items-center justify-center gap-4 mb-6">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 rounded-xl"
-              disabled={currentMonthIdx <= 0}
-              onClick={() => navigateMonth(-1)}
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <span className="text-sm font-semibold text-foreground min-w-[160px] text-center">
-              {formatMonthLabel(selectedMonth)}
-            </span>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 rounded-xl"
-              disabled={currentMonthIdx >= availableMonths.length - 1}
-              onClick={() => navigateMonth(1)}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
-        )}
+
+
 
         {/* Search */}
         <div className="relative mb-6">
@@ -547,6 +523,33 @@ const Visitors = () => {
               ))}
             </div>
           </>
+        )}
+
+        {/* Month pagination */}
+        {availableMonths.length > 0 && (
+          <div className="flex items-center justify-center gap-4 mt-6">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 rounded-xl"
+              disabled={currentMonthIdx <= 0}
+              onClick={() => navigateMonth(-1)}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <span className="text-sm font-semibold text-foreground min-w-[160px] text-center">
+              {formatMonthLabel(selectedMonth)}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 rounded-xl"
+              disabled={currentMonthIdx >= availableMonths.length - 1}
+              onClick={() => navigateMonth(1)}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
         )}
       </div>
     </Layout>
