@@ -67,7 +67,7 @@ const Dashboard = () => {
           transition={{ duration: 0.4 }}
           className="flex items-center justify-center mb-6"
         >
-          <img src={reliveLogo} alt="Relive" className="h-10 object-contain" />
+          <img src={reliveLogo} alt="Relive" className="h-20 md:h-24 object-contain" />
         </motion.div>
 
         <motion.div
