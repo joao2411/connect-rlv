@@ -6,6 +6,7 @@ import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import connectSheep from "@/assets/connect-sheep.png";
 import connectLogoC from "@/assets/connect-logo-c.png";
+import gcLogo from "@/assets/gc-logo.png";
 import reliveLogo from "@/assets/relive-logo.png";
 
 const Dashboard = () => {
@@ -56,6 +57,14 @@ const Dashboard = () => {
       href: "/visitantes",
       badge: "Em construção",
     },
+    {
+      title: "GC",
+      description: "Grupos de comunhão e células",
+      stat: "Em breve",
+      iconType: "gc",
+      href: "/gc",
+      badge: "Em construção",
+    },
   ];
 
   return (
@@ -95,6 +104,8 @@ const Dashboard = () => {
                 <div className="w-14 h-14 flex items-center justify-center overflow-visible">
                   {card.iconType === "sheep" ? (
                     <img src={connectSheep} alt="" className="w-16 h-16 object-contain -mt-5" />
+                  ) : card.iconType === "gc" ? (
+                    <img src={gcLogo} alt="" className="w-16 h-16 object-contain" />
                   ) : (
                     <img src={connectLogoC} alt="" className="w-full h-full object-contain" />
                   )}
