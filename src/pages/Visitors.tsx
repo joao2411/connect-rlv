@@ -179,7 +179,7 @@ const Visitors = () => {
     }
 
     // 3. Update visitor status
-    await supabase.from("visitors").update({ status: "Encaminhado" }).eq("id", visitor.id);
+    await supabase.from("visitors").update({ status: "Encaminhado à discipulado" }).eq("id", visitor.id);
 
     toast({ title: "Visitante convertido em discípulo!", description: `${visitor.name} foi adicionado ao discipulado.` });
     setConvertId(null);
@@ -191,7 +191,7 @@ const Visitors = () => {
     if (!status) return "";
     const s = status.toLowerCase();
     if (s === "em acompanhamento") return "bg-warning/20 text-warning border-warning/30";
-    if (s === "encaminhado") return "bg-success/20 text-success border-success/30";
+    if (s === "encaminhado à discipulado") return "bg-success/20 text-success border-success/30";
     if (s === "encerrado") return "bg-muted text-muted-foreground border-border";
     return "bg-primary/10 text-primary border-primary/30";
   };
@@ -248,7 +248,7 @@ const Visitors = () => {
                     <SelectContent>
                       <SelectItem value="Em acompanhamento">Em acompanhamento</SelectItem>
                       <SelectItem value="Encerrado">Encerrado</SelectItem>
-                      <SelectItem value="Encaminhado">Encaminhado</SelectItem>
+                      <SelectItem value="Encaminhado à discipulado">Encaminhado à discipulado</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
