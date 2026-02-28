@@ -20,7 +20,7 @@ const navItems = [
   { href: "/discipulado", label: "Discipulados", icon: "sheep" as const },
   { href: "/estatisticas", label: "Estatísticas", icon: "chart" as const },
   { href: "/visitantes", label: "Visitantes", icon: "logo" as const },
-  { href: "/gc", label: "GC", icon: "gc" as const },
+  { href: "/gc", label: "Grupos de Comunhão", icon: "gc" as const },
 ];
 
 const Layout = ({ children }: { children: React.ReactNode }) => {

@@ -59,7 +59,7 @@ const Dashboard = () => {
     },
     {
       title: "GC",
-      description: "Grupos de comunhão e células",
+      description: "Dados dos GC's",
       stat: "Em breve",
       iconType: "gc",
       href: "/gc",
