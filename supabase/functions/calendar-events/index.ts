@@ -111,8 +111,12 @@ serve(async (req) => {
 
     // Filter future events and sort
     const now = new Date();
+    now.setHours(0, 0, 0, 0);
     const futureEvents = allEvents
-      .filter((e) => new Date(e.start) >= now || e.allDay)
+      .filter((e) => {
+        const endDate = new Date(e.end || e.start);
+        return endDate >= now;
+      })
       .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
       .slice(0, 20);
 
