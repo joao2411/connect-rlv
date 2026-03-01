@@ -68,18 +68,6 @@ const Agenda = () => {
           </p>
         </div>
 
-        {/* Iframe do Google Calendar */}
-        <Card className="overflow-hidden">
-          <CardContent className="p-0">
-            <iframe
-              src={iframeSrc}
-              className="w-full border-0"
-              style={{ height: "600px" }}
-              title="Agenda Google Calendar"
-            />
-          </CardContent>
-        </Card>
-
         {/* Lista de próximos eventos */}
         <div>
           <h2 className="text-2xl font-bold text-foreground mb-4">Próximos Eventos</h2>
@@ -156,6 +144,18 @@ const Agenda = () => {
             </div>
           )}
         </div>
+
+        {/* Iframe do Google Calendar */}
+        <Card className="overflow-hidden">
+          <CardContent className="p-0">
+            <iframe
+              src={iframeSrc}
+              className="w-full border-0"
+              style={{ height: "600px" }}
+              title="Agenda Google Calendar"
+            />
+          </CardContent>
+        </Card>
       </div>
     </Layout>
   );
