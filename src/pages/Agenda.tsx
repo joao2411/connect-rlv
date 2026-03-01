@@ -1,21 +1,22 @@
 import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { CalendarDays, Clock, MapPin } from "lucide-react";
-import { format, parseISO, isAfter } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from "@/integrations/supabase/client";
 
 const CALENDAR_ID = "19f330717a76f1f8da42a1c44123c52da4f51da0ddb07dfd61aff43b48d4f62e@group.calendar.google.com";
-const API_KEY_ENV = import.meta.env.VITE_GOOGLE_CALENDAR_API_KEY;
 
 interface CalendarEvent {
   id: string;
   summary: string;
   description?: string;
   location?: string;
-  start: { dateTime?: string; date?: string };
-  end: { dateTime?: string; date?: string };
+  start: string;
+  end: string;
+  allDay: boolean;
 }
 
 const Agenda = () => {
@@ -24,20 +25,11 @@ const Agenda = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!API_KEY_ENV) {
-      setError("Chave da API do Google Calendar não configurada.");
-      setLoading(false);
-      return;
-    }
-
     const fetchEvents = async () => {
       try {
-        const now = new Date().toISOString();
-        const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?key=${API_KEY_ENV}&timeMin=${now}&maxResults=20&singleEvents=true&orderBy=startTime`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("Erro ao buscar eventos");
-        const data = await res.json();
-        setEvents(data.items || []);
+        const { data, error: fnError } = await supabase.functions.invoke("calendar-events");
+        if (fnError) throw new Error(fnError.message);
+        setEvents(data.events || []);
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -51,19 +43,18 @@ const Agenda = () => {
   const iframeSrc = `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(CALENDAR_ID)}&ctz=America%2FSao_Paulo&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=1&showCalendars=0&showTz=0&mode=MONTH&bgcolor=%23ffffff`;
 
   const formatEventDate = (event: CalendarEvent) => {
-    const start = event.start.dateTime || event.start.date;
-    if (!start) return "";
-    const date = parseISO(start);
-    if (event.start.dateTime) {
-      return format(date, "dd 'de' MMMM 'às' HH:mm", { locale: ptBR });
+    if (!event.start) return "";
+    const date = parseISO(event.start);
+    if (event.allDay) {
+      return format(date, "dd 'de' MMMM", { locale: ptBR });
     }
-    return format(date, "dd 'de' MMMM", { locale: ptBR });
+    return format(date, "dd 'de' MMMM 'às' HH:mm", { locale: ptBR });
   };
 
   const formatEventTime = (event: CalendarEvent) => {
-    if (!event.start.dateTime || !event.end.dateTime) return "Dia inteiro";
-    const start = parseISO(event.start.dateTime);
-    const end = parseISO(event.end.dateTime);
+    if (event.allDay) return "Dia inteiro";
+    const start = parseISO(event.start);
+    const end = parseISO(event.end);
     return `${format(start, "HH:mm")} - ${format(end, "HH:mm")}`;
   };
 
