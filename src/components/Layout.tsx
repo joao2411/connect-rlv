@@ -9,6 +9,7 @@ import {
   Menu,
   X,
   BarChart3,
+  CalendarDays,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,6 +22,7 @@ const navItems = [
   { href: "/estatisticas", label: "Estatísticas", icon: "chart" as const },
   { href: "/visitantes", label: "Visitantes", icon: "logo" as const },
   { href: "/gc", label: "Grupos de Comunhão", icon: "gc" as const },
+  { href: "/agenda", label: "Agenda", icon: "calendar" as const },
 ];
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
@@ -54,6 +56,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     }
     if (type === "chart") {
       return <BarChart3 className={className} strokeWidth={2.2} />;
+    }
+    if (type === "calendar") {
+      return <CalendarDays className={className} strokeWidth={2.2} />;
     }
     return <Shield className={className} strokeWidth={2.2} />;
   };
