@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, CalendarDays, MapPin } from "lucide-react";
 import { motion } from "framer-motion";
+import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import connectSheep from "@/assets/connect-sheep.png";
 import connectLogoC from "@/assets/connect-logo-c.png";
 import gcLogo from "@/assets/gc-logo.png";
@@ -13,6 +15,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [visitorsThisMonth, setVisitorsThisMonth] = useState(0);
   const [activeDiscipleship, setActiveDiscipleship] = useState(0);
+  const [nextEvent, setNextEvent] = useState<{ summary: string; start: string; allDay: boolean; location?: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -22,7 +25,7 @@ const Dashboard = () => {
         .toISOString()
         .split("T")[0];
 
-      const [{ count: vCount }, { count: dCount }] = await Promise.all([
+      const [{ count: vCount }, { count: dCount }, eventsRes] = await Promise.all([
         supabase
           .from("visitors")
           .select("*", { count: "exact", head: true })
@@ -31,10 +34,16 @@ const Dashboard = () => {
           .from("discipulado")
           .select("*", { count: "exact", head: true })
           .eq("status", "ativo"),
+        supabase.functions.invoke("calendar-events"),
       ]);
 
       setVisitorsThisMonth(vCount ?? 0);
       setActiveDiscipleship(dCount ?? 0);
+
+      if (eventsRes.data?.events?.length > 0) {
+        setNextEvent(eventsRes.data.events[0]);
+      }
+
       setLoading(false);
     };
     fetchStats();
@@ -142,6 +151,37 @@ const Dashboard = () => {
             </motion.button>
           ))}
         </div>
+
+        {nextEvent && (
+          <motion.button
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.5 }}
+            onClick={() => navigate("/agenda")}
+            className="glass-card-hover w-full text-left p-5 md:p-6 mt-6 group cursor-pointer"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <CalendarDays className="w-4 h-4 text-primary" />
+              <span className="text-xs font-bold uppercase tracking-wider text-primary" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+                Próximo Evento
+              </span>
+            </div>
+            <h3 className="text-base md:text-lg font-bold text-foreground mb-1" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+              {nextEvent.summary}
+            </h3>
+            <p className="text-muted-foreground text-xs" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+              {nextEvent.allDay
+                ? format(parseISO(nextEvent.start), "dd 'de' MMMM", { locale: ptBR })
+                : format(parseISO(nextEvent.start), "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+            </p>
+            {nextEvent.location && (
+              <p className="text-muted-foreground text-xs mt-1 flex items-center gap-1" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+                <MapPin className="w-3 h-3" />
+                {nextEvent.location}
+              </p>
+            )}
+          </motion.button>
+        )}
 
         <motion.p
           initial={{ opacity: 0 }}
