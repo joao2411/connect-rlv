@@ -12,6 +12,7 @@ import Admin from "./pages/Admin";
 import Statistics from "./pages/Statistics";
 import Birthdays from "./pages/Birthdays";
 import GC from "./pages/GC";
+import Agenda from "./pages/Agenda";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +38,7 @@ const AppRoutes = () => (
     <Route path="/estatisticas" element={<ProtectedRoute><Statistics /></ProtectedRoute>} />
     <Route path="/aniversarios" element={<ProtectedRoute><Birthdays /></ProtectedRoute>} />
     <Route path="/gc" element={<ProtectedRoute><GC /></ProtectedRoute>} />
+    <Route path="/agenda" element={<ProtectedRoute><Agenda /></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />
   </Routes>
 );
