@@ -2,7 +2,8 @@ import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
 import { Card, CardContent } from "@/components/ui/card";
-import { Cake, Gift, ArrowLeft } from "lucide-react";
+import { Cake, Gift, ArrowLeft, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
@@ -60,6 +61,7 @@ const Birthdays = () => {
   const navigate = useNavigate();
   const [people, setPeople] = useState<Person[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -81,9 +83,14 @@ const Birthdays = () => {
     return [...people].sort((a, b) => daysUntilBirthday(a.birth_date) - daysUntilBirthday(b.birth_date));
   }, [people]);
 
+  const filteredPeople = useMemo(() => {
+    if (!search.trim()) return people;
+    return people.filter((p) => p.nome.toLowerCase().includes(search.toLowerCase()));
+  }, [people, search]);
+
   const grouped = useMemo(() => {
     const groups = new Map<number, Person[]>();
-    people.forEach((p) => {
+    filteredPeople.forEach((p) => {
       const month = parseDate(p.birth_date).getMonth();
       if (!groups.has(month)) groups.set(month, []);
       groups.get(month)!.push(p);
@@ -92,7 +99,7 @@ const Birthdays = () => {
     return Array.from({ length: 12 }, (_, i) => i)
       .filter((m) => groups.has(m))
       .map((m) => ({ month: m, people: groups.get(m)! }));
-  }, [people]);
+  }, [filteredPeople]);
 
   const todayBirthdays = useMemo(() => sorted.filter((p) => daysUntilBirthday(p.birth_date) === 0), [sorted]);
 
@@ -122,6 +129,17 @@ const Birthdays = () => {
             <h1 className="text-3xl font-bold text-foreground">🎂 Aniversários</h1>
             <p className="text-muted-foreground text-sm">{people.length} pessoa(s) com data de nascimento</p>
           </div>
+        </div>
+
+        {/* Search */}
+        <div className="relative mb-6">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nome..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-11 h-11 rounded-xl"
+          />
         </div>
 
         {todayBirthdays.length > 0 && (
