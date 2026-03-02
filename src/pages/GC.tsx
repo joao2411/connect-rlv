@@ -5,7 +5,7 @@ const GC = () => {
     <Layout>
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground">GC</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-foreground">GC's</h1>
           <p className="text-muted-foreground mt-1">GC</p>
         </div>
 
