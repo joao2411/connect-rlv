@@ -55,6 +55,8 @@ const Visitors = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [convertId, setConvertId] = useState<string | null>(null);
   const [converting, setConverting] = useState(false);
+  const [convertDiscipuladorId, setConvertDiscipuladorId] = useState<string>("");
+  const [pessoasList, setPessoasList] = useState<{ id: string; nome: string }[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<string>(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -69,7 +71,14 @@ const Visitors = () => {
     setLoading(false);
   };
 
-  useEffect(() => { fetchVisitors(); }, []);
+  useEffect(() => {
+    fetchVisitors();
+    const fetchPessoas = async () => {
+      const { data } = await supabase.from("pessoas").select("id, nome").order("nome");
+      if (data) setPessoasList(data);
+    };
+    fetchPessoas();
+  }, []);
 
   // Available months from visitor data
   const availableMonths = useMemo(() => {
@@ -205,13 +214,21 @@ const Visitors = () => {
       return;
     }
 
+    const discipuladoPayload: any = {
+      discipulo_id: newPessoa.id,
+      status: "ativo",
+      created_by: user?.id,
+    };
+
+    if (convertDiscipuladorId) {
+      discipuladoPayload.discipulador_id = convertDiscipuladorId;
+      const selectedPessoa = pessoasList.find((p) => p.id === convertDiscipuladorId);
+      if (selectedPessoa) discipuladoPayload.discipulador = selectedPessoa.nome;
+    }
+
     const { error: discError } = await supabase
       .from("discipulado")
-      .insert({
-        discipulo_id: newPessoa.id,
-        status: "ativo",
-        created_by: user?.id,
-      });
+      .insert(discipuladoPayload);
 
     if (discError) {
       toast({ title: "Erro ao criar discipulado", description: discError.message, variant: "destructive" });
@@ -223,6 +240,7 @@ const Visitors = () => {
 
     toast({ title: "Visitante convertido em discípulo!", description: `${visitor.name} foi adicionado ao discipulado.` });
     setConvertId(null);
+    setConvertDiscipuladorId("");
     setConverting(false);
     fetchVisitors();
   };
@@ -420,8 +438,19 @@ const Visitors = () => {
                                 <p className="text-muted-foreground text-sm">
                                   <strong>{v.name}</strong> será adicionado à tabela de pessoas e ao discipulado como ativo.
                                 </p>
+                                <div className="space-y-1.5 mt-3">
+                                  <Label>Discipulador</Label>
+                                  <Select value={convertDiscipuladorId} onValueChange={setConvertDiscipuladorId}>
+                                    <SelectTrigger className="h-11 rounded-xl"><SelectValue placeholder="Selecione o discipulador..." /></SelectTrigger>
+                                    <SelectContent>
+                                      {pessoasList.map((p) => (
+                                        <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
                                 <div className="flex gap-3 mt-4">
-                                  <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setConvertId(null)}>Cancelar</Button>
+                                  <Button variant="outline" className="flex-1 rounded-xl" onClick={() => { setConvertId(null); setConvertDiscipuladorId(""); }}>Cancelar</Button>
                                   <Button className="flex-1 rounded-xl gradient-gold text-accent-foreground hover:opacity-90" onClick={() => handleConvertToDisciple(v)} disabled={converting}>
                                     {converting ? "Convertendo..." : "Confirmar"}
                                   </Button>
@@ -497,12 +526,23 @@ const Visitors = () => {
                     <p className="text-muted-foreground text-xs mt-2 line-clamp-2">{v.observations}</p>
                   )}
 
-                  <Dialog open={convertId === v.id} onOpenChange={(o) => !o && setConvertId(null)}>
+                  <Dialog open={convertId === v.id} onOpenChange={(o) => { if (!o) { setConvertId(null); setConvertDiscipuladorId(""); } }}>
                     <DialogContent className="sm:max-w-sm rounded-2xl">
                       <DialogHeader><DialogTitle>Converter em discípulo?</DialogTitle></DialogHeader>
                       <p className="text-muted-foreground text-sm"><strong>{v.name}</strong> será adicionado ao discipulado.</p>
+                      <div className="space-y-1.5 mt-3">
+                        <Label>Discipulador</Label>
+                        <Select value={convertDiscipuladorId} onValueChange={setConvertDiscipuladorId}>
+                          <SelectTrigger className="h-11 rounded-xl"><SelectValue placeholder="Selecione o discipulador..." /></SelectTrigger>
+                          <SelectContent>
+                            {pessoasList.map((p) => (
+                              <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                       <div className="flex gap-3 mt-4">
-                        <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setConvertId(null)}>Cancelar</Button>
+                        <Button variant="outline" className="flex-1 rounded-xl" onClick={() => { setConvertId(null); setConvertDiscipuladorId(""); }}>Cancelar</Button>
                         <Button className="flex-1 rounded-xl gradient-gold text-accent-foreground hover:opacity-90" onClick={() => handleConvertToDisciple(v)} disabled={converting}>
                           {converting ? "..." : "Confirmar"}
                         </Button>

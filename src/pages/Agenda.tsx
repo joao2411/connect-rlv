@@ -108,7 +108,7 @@ const Agenda = () => {
 
           {!loading && !error && events.length > 0 && (
             <div className="space-y-3">
-              {events.map((event) => (
+              {events.slice(0, 3).map((event) => (
                 <Card key={event.id} className="glass-card-hover">
                   <CardContent className="p-4">
                     <h3
