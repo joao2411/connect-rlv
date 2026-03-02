@@ -62,8 +62,8 @@ const Dashboard = () => {
       badge: null,
     },
     {
-      title: "GC",
-      description: "Dados dos GC's",
+      title: "Grupos de Comunhão",
+      description: "Visão de nossos GC's",
       stat: "Em breve",
       iconType: "gc",
       href: "/gc",
